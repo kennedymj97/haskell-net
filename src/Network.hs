@@ -115,7 +115,7 @@ backPropagate !inps !targets !net =
               in (net', cost + cost'))
           (net, 0)
           (zip inps targets)
-   in (netFinal, costSum / fromIntegral (length inps))
+   in (netFinal, costSum)
 
 train ::
      [Vector Double]
@@ -128,7 +128,7 @@ train !inps !targets !bs !net !optFunc
   --let (_, _, net', costSum) = handleBatching bs inps targets net 0
  =
   let (_, _, net', costSum) = handleBatching bs inps targets net 0 optFunc
-   in (net', costSum / (fromIntegral (length inps) / fromIntegral bs))
+   in (net', costSum / fromIntegral (length inps))
 
 handleBatching ::
      Int
