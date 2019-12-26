@@ -106,32 +106,63 @@ backPropOneInput !inp !target !net =
        in (C b w (bGrads + errs) (wGrads + errWs), c2', cost, dWs)
 
 backPropagate ::
-     [Vector Double]
-  -> [Vector Double]
-  -> Double
-  -> Network
-  -> (Network, Double)
-backPropagate !inps !targets !lr !net =
+     [Vector Double] -> [Vector Double] -> Network -> (Network, Double)
+backPropagate !inps !targets !net =
   let (netFinal, costSum) =
         foldl'
           (\(net, cost) (inp, target) ->
              let (net', cost') = backPropOneInput inp target net
-                 net'' = gradientDescent lr net'
-              in (net'', cost + cost'))
+              in (net', cost + cost'))
           (net, 0)
           (zip inps targets)
-   in (netFinal, costSum / fromIntegral (2 * length inps))
+   in (netFinal, costSum / fromIntegral (length inps))
 
-gradientDescent :: Double -> Network -> Network
-gradientDescent !lr (Output !c) = Output (applyGrads lr c)
-gradientDescent !lr (c `Layer` n) = applyGrads lr c `Layer` gradientDescent lr n
+train ::
+     [Vector Double]
+  -> [Vector Double]
+  -> Int
+  -> Network
+  -> (Connections -> Connections)
+  -> (Network, Double)
+train !inps !targets !bs !net !optFunc
+  --let (_, _, net', costSum) = handleBatching bs inps targets net 0
+ =
+  let (_, _, net', costSum) = handleBatching bs inps targets net 0 optFunc
+   in (net', costSum / (fromIntegral (length inps) / fromIntegral bs))
 
-applyGrads :: Double -> Connections -> Connections
-applyGrads !lr (C !b !w !bGrads !wGrads) =
+handleBatching ::
+     Int
+  -> [Vector Double]
+  -> [Vector Double]
+  -> Network
+  -> Double
+  -> (Connections -> Connections)
+  -> ([Vector Double], [Vector Double], Network, Double)
+handleBatching _ [] [] !net !cost _ = ([], [], net, cost)
+handleBatching !bs !inps !targets !net !cost !optFunc =
+  let (batchInps, inps') = splitAt bs inps
+      (batchTargets, targets') = splitAt bs targets
+      (net', cost') = backPropagate batchInps batchTargets net
+      optimisedNet = optimise net' optFunc
+   in handleBatching bs inps' targets' optimisedNet (cost + cost') optFunc
+
+gradientDescent :: Double -> Connections -> Connections
+gradientDescent !lr (C !b !w !bGrads !wGrads) =
   C (b - scale lr bGrads) (w - scale lr wGrads) 0 0
 
-runTests :: [Vector Double] -> [Vector Double] -> Double -> Network -> Double
-runTests !testInps !testTargets !thresh !net =
+stochasticGradientDescent :: Int -> Double -> Connections -> Connections
+stochasticGradientDescent !bs !lr (C !b !w !bGrads !wGrads) =
+  C (b - scale lr (scale (1 / fromIntegral bs) bGrads))
+    (w - scale lr (scale (1 / fromIntegral bs) wGrads))
+    0
+    0
+
+optimise :: Network -> (Connections -> Connections) -> Network
+optimise (Output !c) !opt   = Output (opt c)
+optimise (c `Layer` n) !opt = opt c `Layer` optimise n opt
+
+getAccuracy :: [Vector Double] -> [Vector Double] -> Double -> Network -> Double
+getAccuracy !testInps !testTargets !thresh !net =
   let numCorrect =
         foldl'
           (\n (inp, target) ->
@@ -153,28 +184,35 @@ epoch ::
   -> [Vector Double]
   -> [Vector Double]
   -> [Vector Double]
-  -> Double
+  -> Int
   -> Network
-  -> (Network, Double, Double)
-epoch !trainInps !trainTargets !testInps !testTargets !lr !net =
-  let (net', cost) = backPropagate trainInps trainTargets lr net
-      accuracy = runTests testInps testTargets 0.5 net
-   in (net', cost, accuracy * 100)
+  -> (Connections -> Connections)
+  -> (Network, Double, Double, Double)
+epoch !trainInps !trainTargets !testInps !testTargets !bs !net !optFunc =
+  let (net', cost) = train trainInps trainTargets bs net optFunc
+      trainAccuracy = getAccuracy trainInps trainTargets 0.5 net'
+      testAccuracy = getAccuracy testInps testTargets 0.5 net'
+   in (net', cost / 2, trainAccuracy * 100, testAccuracy * 100)
 
 epochIO ::
      [Vector Double]
   -> [Vector Double]
   -> [Vector Double]
   -> [Vector Double]
-  -> Double
+  -> Int
+  -> (Connections -> Connections)
   -> IO Network
   -> Int
   -> IO Network
-epochIO !trainInps !trainTargets !testInps !testTargets !lr !netIO !count = do
+epochIO !trainInps !trainTargets !testInps !testTargets !bs !optFunc !netIO !count = do
   net <- netIO
   putStrLn $ "Running epoch " ++ show count ++ "..."
-  let (net', cost, acc) = epoch trainInps trainTargets testInps testTargets lr net
-  putStrLn $ "Cost: " ++ show cost ++ "    Accuracy: " ++ show acc
+  let (net', cost, trainAcc, testAcc) =
+        epoch trainInps trainTargets testInps testTargets bs net optFunc
+  putStrLn $ "Cost: " ++ show cost
+  putStrLn $ "Train Accuracy: " ++ show trainAcc
+  putStrLn $ "Test Accuracy: " ++ show testAcc
+  putStrLn ""
   return net'
 
 readExams :: String -> IO ([Vector Double], [Vector Double])
@@ -204,21 +242,12 @@ examsNet = do
   (testInps, testOuts) <- readExams "./data/examScoresTest.txt"
   let net0 = randomNet 2 [8, 8] 1
   let lr = 0.01
-  let epochIO' = epochIO trainInps trainOuts testInps testOuts lr
+  let bs = 64
+  let optFunc = stochasticGradientDescent bs lr
+  let epochIO' = epochIO trainInps trainOuts testInps testOuts bs optFunc
   putStrLn "Training network..."
   trained <- foldl' epochIO' net0 [0 .. 100]
   putStrLn "Example results from trained net..."
   print $ runNet trained (vector [80, 80])
   print $ runNet trained (vector [20, 30])
   return ()
-  {-
-  let (trained, cost, acc) = epoch' net0
-  print cost
-  print acc
-  let (trained', cost', acc') = epoch' trained
-  print cost'
-  print acc'
-  let (trained'', cost'', acc'') = epoch' trained'
-  print cost''
-  print acc''
-  -}
