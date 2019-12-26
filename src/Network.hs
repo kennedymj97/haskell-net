@@ -36,6 +36,12 @@ sigmoid x = 1 / (1 + exp (-x))
 sigmoid' :: Floating a => a -> a
 sigmoid' x = sigmoid x * (1 - sigmoid x)
 
+relu :: (Floating a, Ord a) => a -> a
+relu = max 0
+
+relu' :: (Floating a, Ord a) => a -> a
+relu' n = if n < 0 then 0 else 1
+
 weightedInput :: Connections -> Vector Double -> Vector Double
 weightedInput (C b w _ _) v = w #> v + b
 
@@ -67,7 +73,8 @@ backPropOneInput !inp !target !net =
     go !inp (Output !c) =
       let (z, a) = feedForward c inp
           (c', dWs) = outputErrs a z inp target c
-          cost = norm_2 (target - a) ** 2
+          cost = sumElements $ (target * log a) + ((1 - target) * log (1 - a))
+          -- cost = norm_2 (target - a) ** 2
        in (Output c', dWs, cost)
     go !inp (c1 `Layer` c2) =
       let (z, a) = feedForward c1 inp
@@ -87,7 +94,8 @@ backPropOneInput !inp !target !net =
       -> Connections
       -> (Connections, Vector Double)
     outputErrs a z inp target c@(C b w bGrads wGrads) =
-      let errs = (a - target) * sigmoid' z
+      let -- errs = sigmoid' z * (a - target)
+          errs = (a - target)
           errWs = errs `outer` inp
           dWs = tr w #> errs
        in (C b w (bGrads + errs) (wGrads + errWs), dWs)
@@ -100,7 +108,7 @@ backPropOneInput !inp !target !net =
       -> (Connections, Network, Double, Vector Double)
     backProp c1@(C b w bGrads wGrads) c2 a z inp =
       let (c2', dWs', cost) = go a c2
-          errs = sigmoid' z * dWs'
+          errs = dWs' * sigmoid' z
           errWs = errs `outer` inp
           dWs = tr w #> errs
        in (C b w (bGrads + errs) (wGrads + errWs), c2', cost, dWs)
@@ -125,10 +133,9 @@ train ::
   -> (Connections -> Connections)
   -> (Network, Double)
 train !inps !targets !bs !net !optFunc
-  --let (_, _, net', costSum) = handleBatching bs inps targets net 0
  =
   let (_, _, net', costSum) = handleBatching bs inps targets net 0 optFunc
-   in (net', costSum / fromIntegral (length inps))
+   in (net', -(costSum / fromIntegral (length inps)))
 
 handleBatching ::
      Int
@@ -241,7 +248,7 @@ examsNet = do
   (trainInps, trainOuts) <- readExams "./data/examScoresTrain.txt"
   (testInps, testOuts) <- readExams "./data/examScoresTest.txt"
   let net0 = randomNet 2 [8, 8] 1
-  let lr = 0.01
+  let lr = 0.005
   let bs = 64
   let optFunc = stochasticGradientDescent bs lr
   let epochIO' = epochIO trainInps trainOuts testInps testOuts bs optFunc
