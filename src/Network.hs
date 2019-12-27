@@ -20,7 +20,7 @@ data Connections =
     , weights :: !(Matrix Double) --m x n
     , bGrads  :: !(Vector Double)
     , wGrads  :: !(Matrix Double)
-    } -- m to n layer
+    } deriving Show-- m to n layer
 
 updateGrads :: Vector Double -> Matrix Double -> Connections -> Connections
 updateGrads bGrads' wGrads' (C b w bGrads wGrads) =
@@ -36,11 +36,16 @@ sigmoid x = 1 / (1 + exp (-x))
 sigmoid' :: Floating a => a -> a
 sigmoid' x = sigmoid x * (1 - sigmoid x)
 
-relu :: (Floating a, Ord a) => a -> a
-relu = max 0
+relu :: (Element b, Num b, Container c b, Ord b) => c b -> c b
+relu = cmap (max 0)
 
-relu' :: (Floating a, Ord a) => a -> a
-relu' n = if n < 0 then 0 else 1
+relu' :: (Element b, Num b, Container c b, Ord b) => c b -> c b
+relu' = cmap (\x -> if x <= 0 then 0 else 1)
+
+softmax :: (Element b, Num b, Container c b, Ord b, Floating b) => c b -> c b
+softmax xs = cmap (\x -> exp x / expSum) xs
+  where
+    expSum = sumElements $ cmap exp xs
 
 weightedInput :: Connections -> Vector Double -> Vector Double
 weightedInput (C b w _ _) v = w #> v + b
@@ -48,7 +53,7 @@ weightedInput (C b w _ _) v = w #> v + b
 runNet :: Network -> Vector Double -> Vector Double
 runNet (Output c) !inp = sigmoid (weightedInput c inp)
 runNet (c `Layer` n) !inp =
-  let inp' = sigmoid (weightedInput c inp)
+  let inp' = relu (weightedInput c inp)
    in runNet n inp'
 
 randomConnections :: Int -> Int -> IO Connections
@@ -59,9 +64,15 @@ randomConnections i o = do
       w = uniformSample seed2 o (replicate i (-1, 1))
   return (C b w 0 0)
 
-randomNet :: Int -> [Int] -> Int -> IO Network
-randomNet i [] o     = Output <$> randomConnections i o
-randomNet i (h:hs) o = Layer <$> randomConnections i h <*> randomNet h hs o
+kaimingInit :: Int -> Int -> IO Connections
+kaimingInit i o = do
+  let b = vector (replicate o 0)
+  w <- scale (sqrt (2 / fromIntegral i)) <$> randn o i
+  return (C b w 0 0)
+
+randomNet :: Int -> [Int] -> Int -> (Int -> Int -> IO Connections) -> IO Network
+randomNet i [] o initFunc    = Output <$> initFunc i o
+randomNet i (h:hs) o initFunc = Layer <$> initFunc i h <*> randomNet h hs o initFunc
 
 backPropOneInput ::
      Vector Double -> Vector Double -> Network -> (Network, Double)
@@ -71,7 +82,8 @@ backPropOneInput !inp !target !net =
   where
     go :: Vector Double -> Network -> (Network, Vector Double, Double)
     go !inp (Output !c) =
-      let (z, a) = feedForward c inp
+      let z = weightedInput c inp
+          a = sigmoid z
           (c', dWs) = outputErrs a z inp target c
           cost = sumElements $ (target * log a) + ((1 - target) * log (1 - a))
           -- cost = norm_2 (target - a) ** 2
@@ -84,7 +96,7 @@ backPropOneInput !inp !target !net =
          Connections -> Vector Double -> (Vector Double, Vector Double)
     feedForward c inp =
       let z = weightedInput c inp
-          a = sigmoid z
+          a = relu z
        in (z, a)
     outputErrs ::
          Vector Double
@@ -106,12 +118,18 @@ backPropOneInput !inp !target !net =
       -> Vector Double
       -> Vector Double
       -> (Connections, Network, Double, Vector Double)
-    backProp c1@(C b w bGrads wGrads) c2 a z inp =
-      let (c2', dWs', cost) = go a c2
+    backProp c1@(C b w bGrads wGrads) n@(Output _) a z inp = 
+      let (n', dWs', cost) = go a n
           errs = dWs' * sigmoid' z
           errWs = errs `outer` inp
           dWs = tr w #> errs
-       in (C b w (bGrads + errs) (wGrads + errWs), c2', cost, dWs)
+       in (C b w (bGrads + errs) (wGrads + errWs), n', cost, dWs)
+    backProp c1@(C b w bGrads wGrads) n a z inp =
+      let (n', dWs', cost) = go a n
+          errs = dWs' * relu' z
+          errWs = errs `outer` inp
+          dWs = tr w #> errs
+       in (C b w (bGrads + errs) (wGrads + errWs), n', cost, dWs)
 
 backPropagate ::
      [Vector Double] -> [Vector Double] -> Network -> (Network, Double)
@@ -247,14 +265,16 @@ examsNet :: IO ()
 examsNet = do
   (trainInps, trainOuts) <- readExams "./data/examScoresTrain.txt"
   (testInps, testOuts) <- readExams "./data/examScoresTest.txt"
-  let net0 = randomNet 2 [8, 8] 1
-  let lr = 0.005
+  let trainInps' = map (cmap (/ 100)) trainInps
+      testInps' = map (cmap (/ 100)) testInps
+  let net0 = randomNet 2 [8, 8] 1 kaimingInit
+  let lr = 0.01
   let bs = 64
   let optFunc = stochasticGradientDescent bs lr
-  let epochIO' = epochIO trainInps trainOuts testInps testOuts bs optFunc
+  let epochIO' = epochIO trainInps' trainOuts testInps' testOuts bs optFunc
   putStrLn "Training network..."
   trained <- foldl' epochIO' net0 [0 .. 100]
   putStrLn "Example results from trained net..."
-  print $ runNet trained (vector [80, 80])
-  print $ runNet trained (vector [20, 30])
+  print $ runNet trained (vector [80/100, 80/100])
+  print $ runNet trained (vector [20/100, 30/100])
   return ()
