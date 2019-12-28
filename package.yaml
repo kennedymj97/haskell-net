@@ -26,6 +26,8 @@ dependencies:
 - singletons == 2.5.1
 - Chart-diagrams == 1.9.2
 - random
+- bytestring
+- zlib
 
 library:
   source-dirs: src
