@@ -24,10 +24,10 @@ dependencies:
 - MonadRandom
 - hmatrix == 0.20.0.0
 - singletons == 2.5.1
-- Chart-diagrams == 1.9.2
 - random
 - bytestring
 - zlib
+- hip == 1.5.4.0
 
 library:
   source-dirs: src
