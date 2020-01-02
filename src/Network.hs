@@ -211,7 +211,7 @@ data ModelFuncs =
     , costFunc         :: Vector Double -> Vector Double -> Double
     , optFunc          :: Connections -> Connections
     }
-
+      {-
 examsNet :: IO ()
 examsNet = do
   (trainInps, trainOuts) <- loadExamData "./data/examScoresTrain.txt"
@@ -243,7 +243,7 @@ mnistNet = do
   putStrLn "Training network..."
   trained <- foldl' epochIO' net0 [0 .. 20]
   return ()
-
+-}
 -- INIT FUNCTIONS
 randomConnections :: Int -> Int -> IO Connections
 randomConnections i o = do
