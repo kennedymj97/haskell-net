@@ -10,7 +10,7 @@ import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Numeric.LinearAlgebra
-import           ReadMnist
+import           ReadUntyped
 import           System.Environment
 import           System.Random
 import           Text.Read
@@ -211,7 +211,7 @@ data ModelFuncs =
     , costFunc         :: Vector Double -> Vector Double -> Double
     , optFunc          :: Connections -> Connections
     }
-      {-
+
 examsNet :: IO ()
 examsNet = do
   (trainInps, trainOuts) <- loadExamData "./data/examScoresTrain.txt"
@@ -236,14 +236,14 @@ mnistNet = do
   testLbls <- loadMnistLabels 10000 "./data/t10k-labels-idx1-ubyte.gz"
   let mnistData = D (DB trainImgs trainLbls) (DB testImgs testLbls)
   let net0 = randomNet 784 [100] 10 kaimingInit
-  let lr = 0.1
+  let lr = 0.5
   let bs = 64
   let modelFuncs = F softmax softmaxCE (sgd bs lr)
   let epochIO' = epochIO mnistData modelFuncs bs
   putStrLn "Training network..."
   trained <- foldl' epochIO' net0 [0 .. 20]
   return ()
--}
+
 -- INIT FUNCTIONS
 randomConnections :: Int -> Int -> IO Connections
 randomConnections i o = do
@@ -304,4 +304,30 @@ sgd !bs !lr (C !b !w !bGrads !wGrads) =
     0
     0
 
+-- TEST NETWORK
+inpToH :: Connections
+inpToH =
+  C (vector [0.1, 0.1, 0.1, 0.1])
+    (matrix 2 [0.5, 0.4, 0.3, 0.2, 0.1, 0.2, 0.3, 0.4])
+    (vector [0, 0, 0, 0])
+    (matrix 2 [0, 0, 0, 0, 0, 0, 0, 0])
 
+hToOut :: Connections
+hToOut =
+  C (vector [0.1])
+    (matrix 4 [0.5, 0.4, 0.3, 0.2])
+    (vector [0])
+    (matrix 4 [0, 0, 0, 0])
+
+testNet :: Network
+testNet = inpToH `Layer` Output hToOut
+
+testNetIO :: IO Network
+testNetIO = return testNet
+
+testingData :: ModelData
+testingData =
+  D (DB
+       [vector [0.3, 0.3], vector [0.8, 0.8], vector [0.5, 0.4]]
+       [vector [0], vector [1], vector [0]])
+    (DB [vector [0.9, 0.9]] [vector [1]])

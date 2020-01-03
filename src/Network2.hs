@@ -50,6 +50,10 @@ data Network :: Nat -> [Nat] -> Nat -> * where
     -> !(Network h hs o)
     -> Network i (h : hs) o
 
+instance (KnownNat i, KnownNat o) => Show (Network i hs o) where
+  show (Output c)    = "Output (" ++ show c ++ ") "
+  show (c `Layer` n) = "Layer (" ++ show c ++ ") " ++ show n
+
 weightedInput :: (KnownNat i, KnownNat o) => Connections i o -> R i -> R o
 weightedInput (C b w _ _) v = w #> v + b
 
@@ -79,62 +83,59 @@ backPropOneInput ::
 backPropOneInput !inp !target !fs !net =
   let (net', _, cost) = go inp target fs net
    in (net', cost)
-
-go :: (KnownNat i, KnownNat o) => R i -> R o -> ModelFuncs o -> Network i hs o -> (Network i hs o, R i, Double)
-go !inp !target (F outA costFunc) (Output !c) =
-  let z = weightedInput c inp
-      a = outA z
-      (c', dWs) = outputErrs inp target a z c
-      cost = costFunc target a
-   in (Output c', dWs, cost)
-go inp target fs (c1 `Layer` n) =
-  let (z, a) = feedForward c1 inp
-      (c1', n', cost, dWs) = backProp inp target c1 fs n a z
-   in (c1' `Layer` n', dWs, cost)
-
-feedForward ::
-     (KnownNat i, KnownNat o) => Connections i o -> R i -> (R o, R o)
-feedForward c inp =
-  let z = weightedInput c inp
-      a = relu z
-   in (z, a)
-
-outputErrs ::
-     (KnownNat i, KnownNat o)
-  => R i
-  -> R o
-  -> R o
-  -> R o
-  -> Connections i o
-  -> (Connections i o, R i)
-outputErrs inp target a z c@(C b w bGrads wGrads) =
-  let errs = (a - target)
-      errWs = errs `outer` inp
-      dWs = tr w #> errs
-   in (updateGrads errs errWs c, dWs)
-
-backProp ::
-     (KnownNat i, KnownNat o, KnownNat k)
-  => R k
-  -> R o
-  -> Connections k i
-  -> ModelFuncs o
-  -> Network i hs o
-  -> R i
-  -> R i
-  -> (Connections k i, Network i hs o, Double, R k)
-backProp inp target c1@(C b w bGrads wGrads) fs n@(Output _) a z =
-  let (n', dWs', cost) = go a target fs n
-      errs = dWs'
-      errWs = errs `outer` inp
-      dWs = tr w #> errs
-   in (updateGrads errs errWs c1, n', cost, dWs)
-backProp inp target c@(C b w bGrads wGrads) fs n a z =
-  let (n', dWs', cost) = go a target fs n
-      errs = dWs' * relu' z
-      errWs = errs `outer` inp
-      dWs = tr w #> errs
-   in (updateGrads errs errWs c, n', cost, dWs)
+  where
+    go ::
+         (KnownNat i, KnownNat o)
+      => R i
+      -> R o
+      -> ModelFuncs o
+      -> Network i hs o
+      -> (Network i hs o, R i, Double)
+    go !inp !target (F outA costFunc) (Output !c) =
+      let z = weightedInput c inp
+          a = outA z
+          (c', dWs) = outputErrs inp target a z c
+          cost = costFunc target a
+       in (Output c', dWs, cost)
+    go inp target fs (c1 `Layer` n) =
+      let (z, a) = feedForward c1 inp
+          (c1', n', cost, dWs) = backProp inp target c1 fs n a z
+       in (c1' `Layer` n', dWs, cost)
+    feedForward ::
+         (KnownNat i, KnownNat o) => Connections i o -> R i -> (R o, R o)
+    feedForward c inp =
+      let z = weightedInput c inp
+          a = relu z
+       in (z, a)
+    outputErrs ::
+         (KnownNat i, KnownNat o)
+      => R i
+      -> R o
+      -> R o
+      -> R o
+      -> Connections i o
+      -> (Connections i o, R i)
+    outputErrs inp target a z c@(C b w bGrads wGrads) =
+      let errs = (a - target)
+          errWs = errs `outer` inp
+          dWs = tr w #> errs
+       in (updateGrads errs errWs c, dWs)
+    backProp ::
+         (KnownNat i, KnownNat o, KnownNat k)
+      => R k
+      -> R o
+      -> Connections k i
+      -> ModelFuncs o
+      -> Network i hs o
+      -> R i
+      -> R i
+      -> (Connections k i, Network i hs o, Double, R k)
+    backProp inp target c@(C b w bGrads wGrads) fs n a z =
+      let (n', dWs', cost) = go a target fs n
+          errs = dWs' * relu' z
+          errWs = errs `outer` inp
+          dWs = tr w #> errs
+       in (updateGrads errs errWs c, n', cost, dWs)
 
 train ::
      (KnownNat i, KnownNat o)
@@ -145,7 +146,7 @@ train ::
   -> (Network i hs o, Double)
 train db@(DB !inps _) !fs !ps !net =
   let (_, net', costSum) = handleBatching db fs net ps 0
-   in (net', -(costSum / fromIntegral (length inps)))
+   in (net', -(costSum / (2 * fromIntegral (length inps))))
   where
     handleBatching ::
          (KnownNat i, KnownNat o)
@@ -177,21 +178,11 @@ train db@(DB !inps _) !fs !ps !net =
               (net, 0)
               (zip inps targets)
        in (netFinal, costSum)
+    optimise ::
+         (KnownNat i, KnownNat o) => Params -> Network i hs o -> Network i hs o
+    optimise (P bs lr) (Output !c)      = Output (sgd bs lr c)
+    optimise ps@(P bs lr) (c `Layer` n) = sgd bs lr c `Layer` optimise ps n
 
-optimise ::
-     (KnownNat i, KnownNat o) => Params -> Network i hs o -> Network i hs o
-optimise (P bs lr) (Output !c)      = Output (sgd bs lr c)
-optimise ps@(P bs lr) (c `Layer` n) = sgd bs lr c `Layer` optimise ps n
-
---
---randomNet :: (KnownNat i, SingI hs, KnownNat o) => IO (Network i hs o)
-{-randomNet = go sing
-  where
-    go :: KnownNat h => Sing hs' -> IO (Network h hs' o)
-    go =
-      \case
-        SNil -> Output <$> randomConnections
-        SNat `SCons` ss -> Layer <$> randomConnections <*> go ss-}
 getAccuracy ::
      (KnownNat i, KnownNat o)
   => DataBunch i o
@@ -214,22 +205,9 @@ getAccuracy (DB !inps !targets) !thresh !f !net =
                else n)
           0
           (zip inps targets)
-   in numCorrect / fromIntegral (length inps)
+   in (numCorrect / fromIntegral (length inps)) * 100
 
 epoch ::
-     (KnownNat i, KnownNat o)
-  => ModelData i o
-  -> ModelFuncs o
-  -> Params
-  -> Network i hs o
-  -> (Network i hs o, Double, Double, Double)
-epoch (D !trainData !testData) fs@(F !f _) !ps !net =
-  let (net', cost) = train trainData fs ps net
-      trainAccuracy = getAccuracy trainData 0.5 f net'
-      testAccuracy = getAccuracy testData 0.5 f net'
-   in (net', cost / 2, trainAccuracy * 100, testAccuracy * 100)
-
-epochIO ::
      (KnownNat i, KnownNat o)
   => ModelData i o
   -> ModelFuncs o
@@ -237,10 +215,12 @@ epochIO ::
   -> IO (Network i hs o)
   -> Int
   -> IO (Network i hs o)
-epochIO !d !f !ps !netIO !count = do
+epoch d@(D !trainData !testData) fs@(F !f _) !ps !netIO !count = do
   net <- netIO
   putStrLn $ "Running epoch " ++ show count ++ "..."
-  let (net', cost, trainAcc, testAcc) = epoch d f ps net
+  let (net', cost) = train trainData fs ps net
+      trainAcc = getAccuracy trainData 0.5 f net'
+      testAcc = getAccuracy testData 0.5 f net'
   putStrLn $ "Cost: " ++ show cost
   putStrLn $ "Train Accuracy: " ++ show trainAcc
   putStrLn $ "Test Accuracy: " ++ show testAcc
@@ -252,12 +232,14 @@ data DataBunch i o =
     { inputs :: [R i]
     , labels :: [R o]
     }
+  deriving (Show)
 
 data ModelData i o =
   D
     { trainingData :: DataBunch i o
     , testData     :: DataBunch i o
     }
+  deriving (Show)
 
 data ModelFuncs o =
   F
@@ -271,19 +253,27 @@ data Params =
     , lr :: Double
     }
 
+runEpochs ::
+     (KnownNat i, KnownNat o)
+  => Int
+  -> (IO (Network i hs o) -> Int -> IO (Network i hs o))
+  -> IO (Network i hs o)
+  -> IO (Network i hs o)
+runEpochs numEpochs f net = foldl' f net [1 .. numEpochs]
+
 examsNet :: IO ()
 examsNet = do
   (trainInps, trainOuts) <- loadExamData "./data/examScoresTrain.txt"
   (testInps, testOuts) <- loadExamData "./data/examScoresTest.txt"
   let trainInps' = map (dvmap (/ 100)) trainInps
       testInps' = map (dvmap (/ 100)) testInps
-  let examsData = D (DB trainInps' trainOuts) (DB testInps' testOuts)
-  let net0 = randomNet :: IO (Network 2 '[ 8, 8] 1)
-  let params = P 64 0.01
-  let modelFuncs = F sigmoid sigmoidCE
-  let epochIO' = epochIO examsData modelFuncs params
+      examsData = D (DB trainInps' trainOuts) (DB testInps' testOuts)
+      net0 = randomNet :: IO (Network 2 '[ 8, 8] 1)
+      params = P 64 0.01
+      modelFuncs = F sigmoid sigmoidCE
+      epoch' = epoch examsData modelFuncs params
   putStrLn "Training network..."
-  trained <- foldl' epochIO' net0 [0 .. 5]
+  trained <- runEpochs 10 epoch' net0
   return ()
 
 mnistNet :: IO ()
@@ -293,12 +283,12 @@ mnistNet = do
   testImgs <- loadMnistImages 10000 "./data/t10k-images-idx3-ubyte.gz"
   testLbls <- loadMnistLabels 10000 "./data/t10k-labels-idx1-ubyte.gz"
   let mnistData = D (DB trainImgs trainLbls) (DB testImgs testLbls)
-  let net0 = randomNet :: IO (Network 784 '[ 100] 10)
-  let params = P 64 0.1
-  let modelFuncs = F softmax softmaxCE
-  let epochIO' = epochIO mnistData modelFuncs params
+      net0 = randomNet :: IO (Network 784 '[ 100] 10)
+      params = P 64 0.5
+      modelFuncs = F softmax softmaxCE
+      epoch' = epoch mnistData modelFuncs params
   putStrLn "Training network..."
-  trained <- foldl' epochIO' net0 [0 .. 20]
+  trained <- runEpochs 10 epoch' net0
   return ()
 
 -- INIT FUNCTIONS
@@ -315,7 +305,7 @@ kaimingInit = do
   let b = 0 * randomVector 0 Uniform
   w <- randn
   let w' = sqrt (2 / fromIntegral (snd $ size w)) * w
-  return (C b w 0 0)
+  return (C b w' 0 0)
 
 -- ACTIVATION FUNCTIONS
 sigmoid :: Floating a => a -> a
@@ -368,5 +358,37 @@ sgd !bs !lr (C !b !w !bGrads !wGrads) =
     0
     0
 
+-- USEFUL VECTOR FUNCTIONS
 sumElements' :: KnownNat n => R n -> Double
 sumElements' = LA.sumElements . unwrap
+
+-- TEST NETWORK
+inpToH :: Connections 2 4
+inpToH =
+  C (vector [0.1, 0.1, 0.1, 0.1] :: R 4)
+    (matrix [0.5, 0.4, 0.3, 0.2, 0.1, 0.2, 0.3, 0.4] :: L 4 2)
+    (vector [0, 0, 0, 0] :: R 4)
+    (matrix [0, 0, 0, 0, 0, 0, 0, 0] :: L 4 2)
+
+hToOut :: Connections 4 1
+hToOut =
+  C (vector [0.1] :: R 1)
+    (matrix [0.5, 0.4, 0.3, 0.2] :: L 1 4)
+    (vector [0.1] :: R 1)
+    (matrix [0, 0, 0, 0] :: L 1 4)
+
+testNet :: Network 2 '[ 4] 1
+testNet = inpToH `Layer` Output hToOut
+
+testNetIO :: IO (Network 2 '[ 4] 1)
+testNetIO = return testNet
+
+testingData :: ModelData 2 1
+testingData =
+  D (DB
+       [vector [0.3, 0.3], vector [0.8, 0.8], vector [0.5, 0.4]]
+       [vector [0], vector [1], vector [0]])
+    (DB [vector [0.9, 0.9]] [vector [1]])
+
+testFuncs :: ModelFuncs 1
+testFuncs = F softmax softmaxCE
