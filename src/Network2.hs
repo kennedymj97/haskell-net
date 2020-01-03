@@ -5,6 +5,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE TypeOperators       #-}
 
 module Network2 where
@@ -23,6 +24,8 @@ import           ReadMnist
 import           System.Environment
 import           System.Random
 import           Text.Read
+import Data.Binary as B
+import GHC.Generics (Generic)
 
 data Connections i o =
   C
@@ -31,7 +34,9 @@ data Connections i o =
     , bGrads  :: !(R o)
     , wGrads  :: !(L o i)
     }
-  deriving (Show) -- m to n layer
+  deriving (Show, Generic) -- m to n layer
+
+instance (KnownNat i, KnownNat o) => Binary (Connections i o)
 
 updateGrads ::
      (KnownNat i, KnownNat o)
@@ -53,6 +58,20 @@ data Network :: Nat -> [Nat] -> Nat -> * where
 instance (KnownNat i, KnownNat o) => Show (Network i hs o) where
   show (Output c)    = "Output (" ++ show c ++ ") "
   show (c `Layer` n) = "Layer (" ++ show c ++ ") " ++ show n
+
+putNet :: (KnownNat i, KnownNat o) => Network i hs o -> Put
+putNet =  \case
+  Output w -> put w
+  w `Layer` n -> put w *> putNet n
+
+getNet :: (KnownNat i, KnownNat o) => Sing hs -> Get (Network i hs o)
+getNet = \case
+  SNil -> Output <$> B.get
+  SNat `SCons` ss -> Layer <$> B.get <*> getNet ss
+
+instance (KnownNat i, SingI hs, KnownNat o) => Binary (Network i hs o) where
+  put = putNet
+  get = getNet sing
 
 weightedInput :: (KnownNat i, KnownNat o) => Connections i o -> R i -> R o
 weightedInput (C b w _ _) v = w #> v + b
@@ -288,8 +307,26 @@ mnistNet = do
       modelFuncs = F softmax softmaxCE
       epoch' = epoch mnistData modelFuncs params
   putStrLn "Training network..."
-  trained <- runEpochs 10 epoch' net0
+  trained <- runEpochs 20 epoch' net0
+  saveNet "./data/mnistNet.txt" trained
   return ()
+
+saveNet :: (KnownNat i, SingI hs, KnownNat o) => String -> Network i hs o -> IO ()
+saveNet = encodeFile
+
+loadNet :: (KnownNat i, SingI hs, KnownNat o) => String -> IO (Network i hs o)
+loadNet = decodeFile
+
+  {-
+randomNet :: (KnownNat i, SingI hs, KnownNat o) => IO (Network i hs o)
+randomNet = go sing
+  where
+    go :: (KnownNat h, KnownNat o) => Sing hs' -> IO (Network h hs' o)
+    go =
+      \case
+        SNil -> Output <$> kaimingInit
+        SNat `SCons` ss -> Layer <$> kaimingInit <*> go ss
+-}
 
 -- INIT FUNCTIONS
 randomConnections :: (KnownNat i, KnownNat o) => IO (Connections i o)

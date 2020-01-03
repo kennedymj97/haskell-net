@@ -28,6 +28,7 @@ dependencies:
 - bytestring
 - zlib
 - hip == 1.5.4.0
+- binary
 
 library:
   source-dirs: src
