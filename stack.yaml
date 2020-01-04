@@ -41,6 +41,8 @@ packages:
 #
 extra-deps: [
   "hip-1.5.4.0@sha256:f1a79c096dd5ddf4debbf0b351e20a93232d550c04816f71ae1069df72edc12d,6988"
+, "warp-3.3.5@sha256:aafb4283a8a17b8ae7043109e9a6b055aec9eb9d69cc9ea9bbf0ac6eb27067de,10720"
+, "http2-2.0.3@sha256:c08885f0fd26ae035b169029b782cc693cc30e4d7a3b6f21a61de31085e8cfae,17644"
 ]
 
 # Override default flag values for local packages and extra-deps

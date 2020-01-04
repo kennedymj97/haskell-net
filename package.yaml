@@ -29,6 +29,11 @@ dependencies:
 - zlib
 - hip == 1.5.4.0
 - binary
+- servant == 0.16.2
+- servant-server == 0.16.2
+- warp == 3.3.5
+- aeson == 1.4.6.0
+- text
 
 library:
   source-dirs: src
