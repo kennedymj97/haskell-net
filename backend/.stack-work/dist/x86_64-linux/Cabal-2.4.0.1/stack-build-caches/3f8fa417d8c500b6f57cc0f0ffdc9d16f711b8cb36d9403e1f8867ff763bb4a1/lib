@@ -1,0 +1,44 @@
+/mnt/c/Users/kenne/Developer/deep-haskell/src/ReadUntyped.hs:
+  hash: 8db4faefcd1001c742f3859c87f782f26e75a8c0a2152055062327fd5043dc96
+  size: 2843
+  modtime: 1578063965
+/mnt/c/Users/kenne/Developer/deep-haskell/ChangeLog.md:
+  hash: f2518ed28a87bd16dc80a7f0f938365f943ee9c66fa7cace0daac2dbf61a6ed4
+  size: 52
+  modtime: 1576828211
+/mnt/c/Users/kenne/Developer/deep-haskell/README.md:
+  hash: 9c7fbb952ec873494fb2b2f7921fc318b8bdeb782cc84d210aa150400fe44e19
+  size: 15
+  modtime: 1576828211
+/mnt/c/Users/kenne/Developer/deep-haskell/src/Network.hs:
+  hash: 2b4194bcebcc77d4ec5cbe916215bca798fcb7c173687dcce3368041edfc164c
+  size: 10226
+  modtime: 1578065714
+/mnt/c/Users/kenne/Developer/deep-haskell/src/NetworkTyped.hs:
+  hash: ae00fcb28ff01a2f4a5c88e744ebd1d71786e4e252fdd515e37d6672b1550b78
+  size: 6208
+  modtime: 1576846360
+/mnt/c/Users/kenne/Developer/deep-haskell/src/ReadMnist.hs:
+  hash: d6d23afac8f8183d9c39329e890f3a8ff361fa7e78d5f2ec5f7074151b4dce9e
+  size: 2764
+  modtime: 1577979539
+/mnt/c/Users/kenne/Developer/deep-haskell/package.yaml:
+  hash: da9002800333bc130c435160d9bf2495d85ae6f03028752793ddfa645a1c192c
+  size: 1357
+  modtime: 1578156015
+/mnt/c/Users/kenne/Developer/deep-haskell/src/GenExamScores.hs:
+  hash: bfb36c6cb25d7cf929533446b3b7c36226ddc78fc9783938f41d8a948e94fcec
+  size: 689
+  modtime: 1577089801
+/mnt/c/Users/kenne/Developer/deep-haskell/deep-haskell.cabal:
+  hash: 6d66d380dffd6de18524954888967182eb641a795a1e1d5d7691671574325b78
+  size: 2222
+  modtime: 1578156009
+/mnt/c/Users/kenne/Developer/deep-haskell/src/Network2.hs:
+  hash: a0548e591926ae25f2c391cbc3ec3cca45e9e3325cb5bc17c72a7baa4bc74ad3
+  size: 12586
+  modtime: 1578155556
+/mnt/c/Users/kenne/Developer/deep-haskell/src/NetworkUntyped.hs:
+  hash: 13cfe6162d319a432375bded8cfe432be0ac3194178beb6803ef6dee1f4cd243
+  size: 6129
+  modtime: 1576950199

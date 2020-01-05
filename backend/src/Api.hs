@@ -37,7 +37,8 @@ getPrediction net (NumberString imgStr) =
   Prediction ((LA.toList . unwrap) $ runNet net (convertToVec imgStr) softmax)
   
 convertToVec :: String -> R 784
-convertToVec imgStr = (1/255) * (vector . read) imgStr
+-- convertToVec imgStr = (1/255) * (vector . read) imgStr
+convertToVec = vector . read
 
 server :: Network 784 '[ 100] 10 -> Server MnistAPI
 server = predictionHandler

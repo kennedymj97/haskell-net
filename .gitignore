@@ -1,3 +1,4 @@
-.stack-work/
-deep-haskell.cabal
-*~
+./backend/.stack-work/
+./backend/deep-haskell.cabal
+./backend/*~
+./frontend/elm-stuff/
