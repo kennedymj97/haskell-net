@@ -5144,36 +5144,65 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$document = _Browser_document;
+var $author$project$Main$Initial = {$: 'Initial'};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$init = function (_v0) {
-	return _Utils_Tuple2(
-		{probs: _List_Nil},
-		$elm$core$Platform$Cmd$none);
+	return _Utils_Tuple2($author$project$Main$Initial, $elm$core$Platform$Cmd$none);
 };
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
+var $elm$json$Json$Decode$decodeValue = _Json_run;
+var $author$project$Main$GotProbs = function (a) {
+	return {$: 'GotProbs', a: a};
+};
+var $author$project$Main$Reset = {$: 'Reset'};
+var $author$project$Main$getProbs = function (result) {
+	if (result.$ === 'Ok') {
+		return $author$project$Main$GotProbs(
+			_List_fromArray(
+				[1.3346764637908244e-15, 4.979308290544717e-17, 4.92448277499708e-16, 5.45940372919045e-19, 2.5693742985787663e-13, 3.6776824920128945e-16, 0.9999999999997387, 4.987029384043626e-20, 2.305338873271133e-15, 1.798775005170958e-18]));
+	} else {
+		return $author$project$Main$Reset;
+	}
+};
+var $elm$json$Json$Decode$value = _Json_decodeValue;
+var $author$project$Main$numChanged = _Platform_incomingPort('numChanged', $elm$json$Json$Decode$value);
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $author$project$Main$numDecoder = A2(
+	$elm$json$Json$Decode$field,
+	'data',
+	$elm$json$Json$Decode$list($elm$json$Json$Decode$float));
+var $author$project$Main$subscriptions = function (model) {
+	return $author$project$Main$numChanged(
+		A2(
+			$elm$core$Basics$composeR,
+			$elm$json$Json$Decode$decodeValue($author$project$Main$numDecoder),
+			$author$project$Main$getProbs));
+};
+var $author$project$Main$Loading = {$: 'Loading'};
+var $author$project$Main$Probs = function (a) {
+	return {$: 'Probs', a: a};
+};
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'Probs') {
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{
-						probs: _List_fromArray(
-							[1.3346764637908244e-15, 4.979308290544717e-17, 4.92448277499708e-16, 5.45940372919045e-19, 2.5693742985787663e-13, 3.6776824920128945e-16, 0.9999999999997387, 4.987029384043626e-20, 2.305338873271133e-15, 1.798775005170958e-18])
-					}),
-				$elm$core$Platform$Cmd$none);
-		} else {
-			return _Utils_Tuple2(
-				_Utils_update(
-					model,
-					{probs: _List_Nil}),
-				$elm$core$Platform$Cmd$none);
+		switch (msg.$) {
+			case 'SendImage':
+				return _Utils_Tuple2($author$project$Main$Loading, $elm$core$Platform$Cmd$none);
+			case 'GotProbs':
+				var probs = msg.a;
+				return _Utils_Tuple2(
+					$author$project$Main$Probs(probs),
+					$elm$core$Platform$Cmd$none);
+			default:
+				return _Utils_Tuple2($author$project$Main$Initial, $elm$core$Platform$Cmd$none);
 		}
 	});
-var $author$project$Main$NoProbs = {$: 'NoProbs'};
-var $author$project$Main$Probs = {$: 'Probs'};
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$canvas = _VirtualDom_node('canvas');
 var $elm$json$Json$Encode$string = _Json_wrap;
@@ -5186,6 +5215,28 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $author$project$Main$projectInfo = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras a nisi lectus. Maecenas finibus ligula a scelerisque dapibus. Morbi rutrum vel mi vitae suscipit. Fusce non erat in risus tincidunt mollis. Pellentesque non enim purus. Quisque euismod orci sed tristique congue. Suspendisse eu ligula risus. Donec sit amet magna ac libero posuere congue. Morbi nec tristique velit. Integer sit amet lectus vitae lacus imperdiet vehicula quis id massa. Fusce quis arcu quis enim iaculis pellentesque. Sed vel enim ac mauris vestibulum aliquam. Integer finibus venenatis odio vel molestie. Maecenas mattis, metus eget placerat ornare, mauris risus fringilla mi, sit amet pulvinar orci turpis sed nibh.\n\nAenean malesuada nisi ut pharetra feugiat. Phasellus sollicitudin commodo dignissim. Donec eget faucibus eros, nec malesuada odio. Mauris commodo efficitur pellentesque. Ut porta ac quam ut gravida. Quisque dolor magna, volutpat non convallis cursus, ornare sed neque. Suspendisse velit justo, tempor a mollis at, malesuada nec lorem. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nunc posuere faucibus nunc, et rutrum ante consequat in. Aliquam ac sodales nunc. Vestibulum commodo turpis egestas neque tristique, vel ultricies turpis sollicitudin.\n\nDuis quis nisi id nisl fermentum bibendum. Curabitur laoreet, quam a condimentum pulvinar, neque justo sagittis ligula, nec dictum ex lorem a arcu. In hac habitasse platea dictumst. Aenean a venenatis ante. Nulla sit amet porttitor nulla. Nam et feugiat tortor, at dapibus quam. Praesent ornare blandit dui ac varius. Ut ultrices, libero at malesuada maximus, nulla ligula iaculis tortor, ac tempor quam ex at nibh. Donec interdum turpis sit amet urna mollis, faucibus feugiat urna feugiat. In nibh metus, aliquam vitae dolor sit amet, porta aliquam turpis. Maecenas lobortis consequat urna vitae tristique. Vestibulum non malesuada sapien. Suspendisse nibh nibh, mattis in mauris viverra, lacinia cursus purus.\n\nAenean metus tellus, euismod in laoreet vel, pretium non nunc. Praesent eros magna, iaculis quis magna sed, aliquet ornare velit. Nulla pharetra euismod ante. Suspendisse dapibus efficitur felis, a volutpat nisl pretium at. Pellentesque viverra libero mollis est molestie eleifend vel id ex. Aliquam in tortor cursus, volutpat est ut, vulputate ante. Maecenas molestie vitae ipsum nec ultricies. Nulla tincidunt tincidunt velit. Sed sed tempus odio, quis consequat ligula. Aenean id lacus ac orci elementum mollis. Ut vitae libero sagittis, volutpat est eu, mattis arcu. Suspendisse potenti. Nam vitae metus sed nunc aliquet hendrerit.\n\nMaecenas eleifend semper auctor. Aliquam vitae nisi ex. Suspendisse sed velit nibh. Donec quis lobortis mi. Duis eget dictum magna, sit amet hendrerit nulla. Vestibulum ac velit egestas, placerat mi a, dictum quam. Sed lobortis, neque laoreet accumsan volutpat, lectus elit tristique diam, eu consequat risus ex sit amet nulla. Donec volutpat felis quis auctor condimentum. Sed porttitor molestie urna sed faucibus. Nulla rutrum efficitur ante, vel malesuada libero.\n\nVivamus ut felis faucibus mauris vehicula commodo a vitae nisl. Sed ullamcorper quam mi, in pretium dui volutpat pretium. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum pellentesque diam et purus posuere, in elementum turpis bibendum. Mauris dictum aliquet enim, ut ultricies mi finibus nec. Nulla aliquam leo metus, quis iaculis mauris venenatis ac. Phasellus varius varius sem eu mollis. Pellentesque ultrices dolor diam, at vulputate risus congue vel. Aenean ac libero eu ipsum sollicitudin tincidunt sit amet vel risus. Curabitur id metus nec sapien vestibulum vestibulum. Sed mattis efficitur ultrices. Maecenas congue arcu at libero faucibus, vitae ultrices libero feugiat. Cras mi nulla, suscipit sed felis a, aliquam maximus mauris. Vivamus ac gravida odio. Nam fringilla fermentum elit luctus suscipit. Proin blandit lorem ac turpis dignissim auctor.';
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$core$List$maximum = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -5198,13 +5249,13 @@ var $elm$core$List$maximum = function (list) {
 };
 var $elm$core$String$fromFloat = _String_fromNumber;
 var $author$project$Main$probToPercentage = function (prob) {
-	return (prob < 0.01) ? '0%' : function (perc) {
+	return (!prob) ? '' : ((prob < 0.01) ? '<1%' : function (perc) {
 		return perc + '%';
 	}(
 		A2(
 			$elm$core$String$left,
 			4,
-			$elm$core$String$fromFloat(prob * 100)));
+			$elm$core$String$fromFloat(prob * 100))));
 };
 var $author$project$Main$getCertainty = function (xs) {
 	var _v0 = $elm$core$List$maximum(xs);
@@ -5236,28 +5287,6 @@ var $author$project$Main$getPrediction = function (xs) {
 					}),
 				xs)));
 };
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $author$project$Main$projectInfo = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras a nisi lectus. Maecenas finibus ligula a scelerisque dapibus. Morbi rutrum vel mi vitae suscipit. Fusce non erat in risus tincidunt mollis. Pellentesque non enim purus. Quisque euismod orci sed tristique congue. Suspendisse eu ligula risus. Donec sit amet magna ac libero posuere congue. Morbi nec tristique velit. Integer sit amet lectus vitae lacus imperdiet vehicula quis id massa. Fusce quis arcu quis enim iaculis pellentesque. Sed vel enim ac mauris vestibulum aliquam. Integer finibus venenatis odio vel molestie. Maecenas mattis, metus eget placerat ornare, mauris risus fringilla mi, sit amet pulvinar orci turpis sed nibh.\n\nAenean malesuada nisi ut pharetra feugiat. Phasellus sollicitudin commodo dignissim. Donec eget faucibus eros, nec malesuada odio. Mauris commodo efficitur pellentesque. Ut porta ac quam ut gravida. Quisque dolor magna, volutpat non convallis cursus, ornare sed neque. Suspendisse velit justo, tempor a mollis at, malesuada nec lorem. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nunc posuere faucibus nunc, et rutrum ante consequat in. Aliquam ac sodales nunc. Vestibulum commodo turpis egestas neque tristique, vel ultricies turpis sollicitudin.\n\nDuis quis nisi id nisl fermentum bibendum. Curabitur laoreet, quam a condimentum pulvinar, neque justo sagittis ligula, nec dictum ex lorem a arcu. In hac habitasse platea dictumst. Aenean a venenatis ante. Nulla sit amet porttitor nulla. Nam et feugiat tortor, at dapibus quam. Praesent ornare blandit dui ac varius. Ut ultrices, libero at malesuada maximus, nulla ligula iaculis tortor, ac tempor quam ex at nibh. Donec interdum turpis sit amet urna mollis, faucibus feugiat urna feugiat. In nibh metus, aliquam vitae dolor sit amet, porta aliquam turpis. Maecenas lobortis consequat urna vitae tristique. Vestibulum non malesuada sapien. Suspendisse nibh nibh, mattis in mauris viverra, lacinia cursus purus.\n\nAenean metus tellus, euismod in laoreet vel, pretium non nunc. Praesent eros magna, iaculis quis magna sed, aliquet ornare velit. Nulla pharetra euismod ante. Suspendisse dapibus efficitur felis, a volutpat nisl pretium at. Pellentesque viverra libero mollis est molestie eleifend vel id ex. Aliquam in tortor cursus, volutpat est ut, vulputate ante. Maecenas molestie vitae ipsum nec ultricies. Nulla tincidunt tincidunt velit. Sed sed tempus odio, quis consequat ligula. Aenean id lacus ac orci elementum mollis. Ut vitae libero sagittis, volutpat est eu, mattis arcu. Suspendisse potenti. Nam vitae metus sed nunc aliquet hendrerit.\n\nMaecenas eleifend semper auctor. Aliquam vitae nisi ex. Suspendisse sed velit nibh. Donec quis lobortis mi. Duis eget dictum magna, sit amet hendrerit nulla. Vestibulum ac velit egestas, placerat mi a, dictum quam. Sed lobortis, neque laoreet accumsan volutpat, lectus elit tristique diam, eu consequat risus ex sit amet nulla. Donec volutpat felis quis auctor condimentum. Sed porttitor molestie urna sed faucibus. Nulla rutrum efficitur ante, vel malesuada libero.\n\nVivamus ut felis faucibus mauris vehicula commodo a vitae nisl. Sed ullamcorper quam mi, in pretium dui volutpat pretium. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum pellentesque diam et purus posuere, in elementum turpis bibendum. Mauris dictum aliquet enim, ut ultricies mi finibus nec. Nulla aliquam leo metus, quis iaculis mauris venenatis ac. Phasellus varius varius sem eu mollis. Pellentesque ultrices dolor diam, at vulputate risus congue vel. Aenean ac libero eu ipsum sollicitudin tincidunt sit amet vel risus. Curabitur id metus nec sapien vestibulum vestibulum. Sed mattis efficitur ultrices. Maecenas congue arcu at libero faucibus, vitae ultrices libero feugiat. Cras mi nulla, suscipit sed felis a, aliquam maximus mauris. Vivamus ac gravida odio. Nam fringilla fermentum elit luctus suscipit. Proin blandit lorem ac turpis dignissim auctor.';
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$Main$indexProbs = $elm$core$List$indexedMap(
 	F2(
 		function (x, y) {
@@ -5354,6 +5383,68 @@ var $author$project$Main$visualiseProbs = function (xs) {
 			$author$project$Main$indexProbs(xs));
 	}
 };
+var $author$project$Main$viewProbs = function (model) {
+	switch (model.$) {
+		case 'Initial':
+			return _List_fromArray(
+				[
+					$elm$html$Html$text('Draw a number in the box above!')
+				]);
+		case 'Failure':
+			return _List_fromArray(
+				[
+					$elm$html$Html$text('Couldn\'t get a result back from the model :\'(')
+				]);
+		case 'Loading':
+			return _List_fromArray(
+				[
+					$elm$html$Html$text('Getting predictions')
+				]);
+		default:
+			var probs = model.a;
+			return _List_fromArray(
+				[
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('prediction')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('prediction-item')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(
+									'Prediction: ' + $author$project$Main$getPrediction(probs))
+								])),
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('prediction-item')
+								]),
+							_List_fromArray(
+								[
+									$elm$html$Html$text(
+									'    Certainty: ' + $author$project$Main$getCertainty(probs))
+								]))
+						])),
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('visualise-probs')
+						]),
+					$author$project$Main$visualiseProbs(probs))
+				]);
+	}
+};
 var $author$project$Main$view = function (model) {
 	return {
 		body: _List_fromArray(
@@ -5415,64 +5506,20 @@ var $author$project$Main$view = function (model) {
 												_List_Nil)
 											])),
 										A2(
-										$elm$html$Html$div,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('prediction')
-											]),
-										_List_fromArray(
-											[
-												A2(
-												$elm$html$Html$div,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$class('prediction-item')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text(
-														'Prediction: ' + $author$project$Main$getPrediction(model.probs))
-													])),
-												A2(
-												$elm$html$Html$div,
-												_List_fromArray(
-													[
-														$elm$html$Html$Attributes$class('prediction-item')
-													]),
-												_List_fromArray(
-													[
-														$elm$html$Html$text(
-														'    Certainty: ' + $author$project$Main$getCertainty(model.probs))
-													]))
-											])),
-										A2(
-										$elm$html$Html$div,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('visualise-probs')
-											]),
-										$author$project$Main$visualiseProbs(model.probs)),
-										A2(
-										$elm$html$Html$button,
-										_List_fromArray(
-											[
-												$elm$html$Html$Events$onClick($author$project$Main$Probs)
-											]),
-										_List_fromArray(
-											[
-												$elm$html$Html$text('Get Probs')
-											])),
-										A2(
 										$elm$html$Html$button,
 										_List_fromArray(
 											[
 												$elm$html$Html$Attributes$id('reset'),
-												$elm$html$Html$Events$onClick($author$project$Main$NoProbs)
+												$elm$html$Html$Events$onClick($author$project$Main$Reset)
 											]),
 										_List_fromArray(
 											[
 												$elm$html$Html$text('Reset')
-											]))
+											])),
+										A2(
+										$elm$html$Html$div,
+										_List_Nil,
+										$author$project$Main$viewProbs(model))
 									])),
 								A2(
 								$elm$html$Html$div,
@@ -5487,17 +5534,10 @@ var $author$project$Main$view = function (model) {
 							]))
 					]))
 			]),
-		title: 'Test Title'
+		title: 'Deep Haskell'
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$document(
-	{
-		init: $author$project$Main$init,
-		subscriptions: function (_v0) {
-			return $elm$core$Platform$Sub$none;
-		},
-		update: $author$project$Main$update,
-		view: $author$project$Main$view
-	});
+	{init: $author$project$Main$init, subscriptions: $author$project$Main$subscriptions, update: $author$project$Main$update, view: $author$project$Main$view});
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}});}(this));

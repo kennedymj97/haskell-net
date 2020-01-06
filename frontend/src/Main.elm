@@ -1,62 +1,74 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
 import Debug exposing (toString)
 import Html exposing (Html, button, canvas, div, h1, text)
 import Html.Attributes as HA exposing (class, id)
 import Html.Events exposing (onClick)
+import Http
+import Json.Decode
+import Json.Encode
 import List
 import String
 import Svg
 import Svg.Attributes as SA exposing (x1, x2, y1, y2)
 
 
+
+-- MAIN
+
+
 main =
     Browser.document
         { init = init
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = subscriptions
         , view = view
         }
 
 
-type alias Model =
-    { probs : List Float }
+
+-- MODEL
+
+
+type Model
+    = Initial
+    | Failure
+    | Loading
+    | Probs (List Float)
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { probs = [] }, Cmd.none )
+    ( Initial, Cmd.none )
+
+
+
+-- UPDATE
 
 
 type Msg
-    = Probs
-    | NoProbs
+    = SendImage
+    | GotProbs (List Float)
+      --| GotProbs (Result Http.Error String)
+    | Reset
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Probs ->
-            ( { model
-                | probs =
-                    [ 1.3346764637908244e-15
-                    , 4.979308290544717e-17
-                    , 4.92448277499708e-16
-                    , 5.45940372919045e-19
-                    , 2.5693742985787663e-13
-                    , 3.6776824920128945e-16
-                    , 0.9999999999997387
-                    , 4.987029384043626e-20
-                    , 2.305338873271133e-15
-                    , 1.798775005170958e-18
-                    ]
-              }
-            , Cmd.none
-            )
+        SendImage ->
+            -- CMD will not be none here! Need to send a request to the api!
+            ( Loading, Cmd.none )
 
-        NoProbs ->
-            ( { model | probs = [] }, Cmd.none )
+        GotProbs probs ->
+            ( Probs probs, Cmd.none )
+
+        --case result of
+        --Ok data -> (Probs data, Cmd.none)
+        --Err _ -> (Failure, Cmd.none)
+        Reset ->
+            ( Initial, Cmd.none )
 
 
 getPrediction : List Float -> String
@@ -91,8 +103,11 @@ getCertainty xs =
 
 probToPercentage : Float -> String
 probToPercentage prob =
-    if prob < 0.01 then
-        "0%"
+    if prob == 0 then
+        ""
+
+    else if prob < 0.01 then
+        "<1%"
 
     else
         String.fromFloat (prob * 100) |> String.left 4 |> (\perc -> perc ++ "%")
@@ -134,6 +149,27 @@ probabilityLine val =
         ]
 
 
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    numChanged (Json.Decode.decodeValue numDecoder >> getProbs)
+
+
+port numChanged : (Json.Encode.Value -> msg) -> Sub msg
+
+
+numDecoder : Json.Decode.Decoder (List Float)
+numDecoder =
+    Json.Decode.field "data" (Json.Decode.list Json.Decode.float)
+
+
+
+-- VIEW
+
+
 type alias Document msg =
     { title : String
     , body : List (Html msg)
@@ -142,26 +178,68 @@ type alias Document msg =
 
 view : Model -> Document Msg
 view model =
-    { title = "Test Title"
+    { title = "Deep Haskell"
     , body =
         [ div [ class "page" ]
             [ div [ class "heading" ] [ h1 [] [ text "Deep Haskell" ] ]
             , div [ class "content" ]
                 [ div [ class "left" ]
                     [ div [ id "canvas-container" ] [ canvas [ id "canvas" ] [] ]
-                    , div [ class "prediction" ]
-                        [ div [ class "prediction-item" ] [ text <| "Prediction: " ++ getPrediction model.probs ]
-                        , div [ class "prediction-item" ] [ text <| "    Certainty: " ++ getCertainty model.probs ]
-                        ]
-                    , div [ class "visualise-probs" ] (visualiseProbs model.probs)
-                    , button [ onClick Probs ] [ text "Get Probs" ]
-                    , button [ id "reset", onClick NoProbs ] [ text "Reset" ]
+                    , button [ id "reset", onClick Reset ] [ text "Reset" ]
+                    , div [] (viewProbs model)
                     ]
                 , div [ class "right" ] [ text projectInfo ]
                 ]
             ]
         ]
     }
+
+
+viewProbs : Model -> List (Html Msg)
+viewProbs model =
+    case model of
+        Initial ->
+            [ text "Draw a number in the box above!" ]
+
+        Failure ->
+            [ text "Couldn't get a result back from the model :'(" ]
+
+        Loading ->
+            [ text "Getting predictions" ]
+
+        Probs probs ->
+            [ div [ class "prediction" ]
+                [ div [ class "prediction-item" ] [ text <| "Prediction: " ++ getPrediction probs ]
+                , div [ class "prediction-item" ] [ text <| "    Certainty: " ++ getCertainty probs ]
+                ]
+            , div [ class "visualise-probs" ] (visualiseProbs probs)
+            ]
+
+
+
+-- HTML
+
+
+getProbs : Result Json.Decode.Error (List Float) -> Msg
+getProbs result =
+    case result of
+        Ok _ ->
+            -- This should actually return message: SendImage (formatRawData _)
+            GotProbs
+                [ 1.3346764637908244e-15
+                , 4.979308290544717e-17
+                , 4.92448277499708e-16
+                , 5.45940372919045e-19
+                , 2.5693742985787663e-13
+                , 3.6776824920128945e-16
+                , 0.9999999999997387
+                , 4.987029384043626e-20
+                , 2.305338873271133e-15
+                , 1.798775005170958e-18
+                ]
+
+        Err _ ->
+            Reset
 
 
 projectInfo =
