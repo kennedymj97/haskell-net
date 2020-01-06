@@ -5175,6 +5175,7 @@ var $author$project$Main$update = F2(
 var $author$project$Main$NoProbs = {$: 'NoProbs'};
 var $author$project$Main$Probs = {$: 'Probs'};
 var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$html$Html$canvas = _VirtualDom_node('canvas');
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -5236,6 +5237,7 @@ var $author$project$Main$getPrediction = function (xs) {
 				xs)));
 };
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -5400,9 +5402,18 @@ var $author$project$Main$view = function (model) {
 										$elm$html$Html$div,
 										_List_fromArray(
 											[
-												$elm$html$Html$Attributes$class('draw')
+												$elm$html$Html$Attributes$id('canvas-container')
 											]),
-										_List_Nil),
+										_List_fromArray(
+											[
+												A2(
+												$elm$html$Html$canvas,
+												_List_fromArray(
+													[
+														$elm$html$Html$Attributes$id('canvas')
+													]),
+												_List_Nil)
+											])),
 										A2(
 										$elm$html$Html$div,
 										_List_fromArray(
@@ -5455,6 +5466,7 @@ var $author$project$Main$view = function (model) {
 										$elm$html$Html$button,
 										_List_fromArray(
 											[
+												$elm$html$Html$Attributes$id('reset'),
 												$elm$html$Html$Events$onClick($author$project$Main$NoProbs)
 											]),
 										_List_fromArray(

@@ -2,8 +2,8 @@ module Main exposing (..)
 
 import Browser
 import Debug exposing (toString)
-import Html exposing (Html, button, div, h1, text)
-import Html.Attributes as HA exposing (class)
+import Html exposing (Html, button, canvas, div, h1, text)
+import Html.Attributes as HA exposing (class, id)
 import Html.Events exposing (onClick)
 import List
 import String
@@ -148,14 +148,14 @@ view model =
             [ div [ class "heading" ] [ h1 [] [ text "Deep Haskell" ] ]
             , div [ class "content" ]
                 [ div [ class "left" ]
-                    [ div [ class "draw" ] []
+                    [ div [ id "canvas-container" ] [ canvas [ id "canvas" ] [] ]
                     , div [ class "prediction" ]
                         [ div [ class "prediction-item" ] [ text <| "Prediction: " ++ getPrediction model.probs ]
                         , div [ class "prediction-item" ] [ text <| "    Certainty: " ++ getCertainty model.probs ]
                         ]
                     , div [ class "visualise-probs" ] (visualiseProbs model.probs)
                     , button [ onClick Probs ] [ text "Get Probs" ]
-                    , button [ onClick NoProbs ] [ text "Reset" ]
+                    , button [ id "reset", onClick NoProbs ] [ text "Reset" ]
                     ]
                 , div [ class "right" ] [ text projectInfo ]
                 ]

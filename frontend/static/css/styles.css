@@ -44,10 +44,17 @@ html, body {
   overflow-y: scroll;
 }
 
-.draw {
+#canvas-container {
   width: 70%;
   padding-top: 70%;
-  background: lightgray;
+  position: relative;
+}
+
+#canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: white;
 }
 
 .prediction {
