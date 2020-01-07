@@ -1,5 +1,6 @@
 port module Main exposing (..)
 
+import Array as A
 import Browser
 import Debug exposing (toString)
 import Html exposing (Html, button, canvas, div, h1, text)
@@ -48,25 +49,26 @@ init _ =
 
 
 type Msg
-    = SendImage
-    | GotProbs (List Float)
-      --| GotProbs (Result Http.Error String)
+    = SendImage (A.Array Float)
+    | GotProbs (Result Http.Error (List Float))
     | Reset
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SendImage ->
+        SendImage img ->
             -- CMD will not be none here! Need to send a request to the api!
-            ( Loading, Cmd.none )
+            ( Loading, postImg img )
 
-        GotProbs probs ->
-            ( Probs probs, Cmd.none )
+        GotProbs result ->
+            case result of
+                Ok data ->
+                    ( Probs data, Cmd.none )
 
-        --case result of
-        --Ok data -> (Probs data, Cmd.none)
-        --Err _ -> (Failure, Cmd.none)
+                Err _ ->
+                    ( Failure, Cmd.none )
+
         Reset ->
             ( Initial, Cmd.none )
 
@@ -161,9 +163,9 @@ subscriptions model =
 port numChanged : (Json.Encode.Value -> msg) -> Sub msg
 
 
-numDecoder : Json.Decode.Decoder (List Float)
+numDecoder : Json.Decode.Decoder (A.Array Float)
 numDecoder =
-    Json.Decode.field "data" (Json.Decode.list Json.Decode.float)
+    Json.Decode.field "data" (Json.Decode.array Json.Decode.float)
 
 
 
@@ -220,26 +222,108 @@ viewProbs model =
 -- HTML
 
 
-getProbs : Result Json.Decode.Error (List Float) -> Msg
+postImg : A.Array Float -> Cmd Msg
+postImg img =
+    Http.post
+        { url = "http://localhost:8081"
+        , body = Http.jsonBody (encodeImg img)
+        , expect = Http.expectJson GotProbs decodeProbs
+        }
+
+
+encodeImg : A.Array Float -> Json.Encode.Value
+encodeImg img =
+    Json.Encode.object
+        [ ( "img", Json.Encode.array Json.Encode.float img )
+        ]
+
+
+decodeProbs : Json.Decode.Decoder (List Float)
+decodeProbs =
+    Json.Decode.field "probs" (Json.Decode.list Json.Decode.float)
+
+
+getProbs : Result Json.Decode.Error (A.Array Float) -> Msg
 getProbs result =
     case result of
-        Ok _ ->
-            -- This should actually return message: SendImage (formatRawData _)
-            GotProbs
-                [ 1.3346764637908244e-15
-                , 4.979308290544717e-17
-                , 4.92448277499708e-16
-                , 5.45940372919045e-19
-                , 2.5693742985787663e-13
-                , 3.6776824920128945e-16
-                , 0.9999999999997387
-                , 4.987029384043626e-20
-                , 2.305338873271133e-15
-                , 1.798775005170958e-18
-                ]
+        Ok raw ->
+            SendImage (formatRawData raw)
 
         Err _ ->
             Reset
+
+
+formatRawData : A.Array Float -> A.Array Float
+formatRawData =
+    convertToGray >> downsampleImg
+
+
+convertToGray : A.Array Float -> A.Array Float
+convertToGray arr =
+    A.fromList <|
+        List.foldr
+            (\( idx, val ) acc ->
+                if modBy 4 idx == 0 then
+                    val :: acc
+
+                else
+                    acc
+            )
+            []
+            (A.toIndexedList arr)
+
+
+downsampleImg : A.Array Float -> A.Array Float
+downsampleImg arr =
+    let
+        l =
+            A.length arr
+
+        n =
+            sqrt (toFloat l)
+
+        z =
+            n / 28
+
+        zf =
+            floor z
+    in
+    A.fromList <|
+        List.foldr
+            (\idx acc -> calcPixelVal n zf (topLeftIdx n z idx) arr :: acc)
+            []
+            (List.range 0 783)
+
+
+calcPixelVal : Float -> Int -> Int -> A.Array Float -> Float
+calcPixelVal n zf idx arr =
+    255
+        - (List.foldr
+            (\y acc ->
+                List.foldr
+                    (\x acc2 -> acc2 + Maybe.withDefault 255 (A.get (y + x) arr))
+                    acc
+                    (List.range 0 (zf - 1))
+            )
+            0
+            (List.map (\val -> idx + (val * round n)) (List.range 0 (zf - 1)))
+            / toFloat (zf ^ 2)
+          )
+
+
+sumArray : A.Array Float -> Float
+sumArray =
+    A.foldr (+) 0
+
+
+topLeftIdx : Float -> Float -> Int -> Int
+topLeftIdx n z idx =
+    floor (toFloat (modBy 28 idx) * z) + roundToNearestMult n (n * z * toFloat (idx // 28))
+
+
+roundToNearestMult : Float -> Float -> Int
+roundToNearestMult r x =
+    x / r |> round |> toFloat |> (*) r |> floor
 
 
 projectInfo =

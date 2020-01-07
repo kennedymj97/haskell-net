@@ -21,17 +21,8 @@ function initDraw(canvas, container) {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   canvas.addEventListener('mousedown', setPos, false);
   canvas.addEventListener('mousemove', draw, false);
-  canvas.addEventListener(
-    'mouseup',
-    function() {
-      app.ports.numChanged.send({
-        data: Array.from(
-          ctx.getImageData(0, 0, minDimension(), minDimension()).data,
-        ),
-      });
-    },
-    false,
-  );
+  canvas.addEventListener('mouseup', sendData, false);
+  canvas.addEventListener('mouseleave', sendData, false);
 
   function minDimension() {
     if (canvas.width < canvas.height) {
@@ -39,6 +30,14 @@ function initDraw(canvas, container) {
     }
 
     return canvas.height;
+  }
+
+  function sendData() {
+    app.ports.numChanged.send({
+      data: Array.from(
+        ctx.getImageData(0, 0, minDimenstion(), minDimension()).data,
+      ),
+    });
   }
 
   const resetBtn = document.getElementById('reset');

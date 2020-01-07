@@ -34,6 +34,8 @@ dependencies:
 - warp == 3.3.5
 - aeson == 1.4.6.0
 - text
+- wai-cors == 0.2.7
+- http-types
 
 library:
   source-dirs: src
