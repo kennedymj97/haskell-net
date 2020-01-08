@@ -22,7 +22,14 @@ function initDraw(canvas, container) {
   canvas.addEventListener('mousedown', setPos, false);
   canvas.addEventListener('mousemove', draw, false);
   canvas.addEventListener('mouseup', sendData, false);
-  canvas.addEventListener('mouseleave', sendData, false);
+
+  function sendData() {
+    app.ports.numChanged.send({
+      data: Array.from(
+        ctx.getImageData(0, 0, minDimension(), minDimension()).data,
+      ),
+    });
+  }
 
   function minDimension() {
     if (canvas.width < canvas.height) {
@@ -30,14 +37,6 @@ function initDraw(canvas, container) {
     }
 
     return canvas.height;
-  }
-
-  function sendData() {
-    app.ports.numChanged.send({
-      data: Array.from(
-        ctx.getImageData(0, 0, minDimenstion(), minDimension()).data,
-      ),
-    });
   }
 
   const resetBtn = document.getElementById('reset');
@@ -58,7 +57,7 @@ function initDraw(canvas, container) {
     if (e.buttons !== 1) return;
 
     ctx.beginPath();
-    ctx.lineWidth = container.offsetWidth / 13;
+    ctx.lineWidth = container.offsetWidth / 12;
     ctx.lineCap = 'round';
 
     ctx.moveTo(pos.x, pos.y);

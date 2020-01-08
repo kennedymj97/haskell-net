@@ -79,5 +79,5 @@ allowedMethods =
 
 main :: IO ()
 main = do
-  net <- loadNet "./data/mnistNet.txt" :: IO (Network 784 '[ 100] 10)
+  net <- loadNet "./data/mnistNetSigmoid.txt" :: IO (Network 784 '[ 100] 10)
   run 8081 (application net)

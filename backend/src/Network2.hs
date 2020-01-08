@@ -1,31 +1,31 @@
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE GADTs               #-}
 {-# LANGUAGE KindSignatures      #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving  #-}
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE TypeOperators       #-}
 
 module Network2 where
 
 import           Control.Monad
 import           Control.Monad.Random
+import           Data.Binary                  as B
 import           Data.Foldable
 import           Data.List
 import           Data.Maybe
 import           Data.Singletons
 import           Data.Singletons.Prelude
 import           Data.Singletons.TypeLits
+import           GHC.Generics                 (Generic)
 import qualified Numeric.LinearAlgebra        as LA
 import           Numeric.LinearAlgebra.Static
 import           ReadMnist
 import           System.Environment
 import           System.Random
 import           Text.Read
-import Data.Binary as B
-import GHC.Generics (Generic)
 
 data Connections i o =
   C
@@ -37,6 +37,9 @@ data Connections i o =
   deriving (Show, Generic) -- m to n layer
 
 instance (KnownNat i, KnownNat o) => Binary (Connections i o)
+
+data OpaqueConnections where
+  OConnections :: Sing i -> Sing o -> Connections i o -> OpaqueConnections
 
 updateGrads ::
      (KnownNat i, KnownNat o)
@@ -60,14 +63,16 @@ instance (KnownNat i, KnownNat o) => Show (Network i hs o) where
   show (c `Layer` n) = "Layer (" ++ show c ++ ") " ++ show n
 
 putNet :: (KnownNat i, KnownNat o) => Network i hs o -> Put
-putNet =  \case
-  Output w -> put w
-  w `Layer` n -> put w *> putNet n
+putNet =
+  \case
+    Output w -> put w
+    w `Layer` n -> put w *> putNet n
 
 getNet :: (KnownNat i, KnownNat o) => Sing hs -> Get (Network i hs o)
-getNet = \case
-  SNil -> Output <$> B.get
-  SNat `SCons` ss -> Layer <$> B.get <*> getNet ss
+getNet =
+  \case
+    SNil -> Output <$> B.get
+    SNat `SCons` ss -> Layer <$> B.get <*> getNet ss
 
 instance (KnownNat i, SingI hs, KnownNat o) => Binary (Network i hs o) where
   put = putNet
@@ -134,7 +139,7 @@ backPropOneInput !inp !target !fs !net =
       -> R o
       -> Connections i o
       -> (Connections i o, R i)
-    outputErrs inp target a z c@(C b w bGrads wGrads) =
+    outputErrs inp target a z c@(C _ w _ _) =
       let errs = (a - target)
           errWs = errs `outer` inp
           dWs = tr w #> errs
@@ -149,7 +154,7 @@ backPropOneInput !inp !target !fs !net =
       -> R i
       -> R i
       -> (Connections k i, Network i hs o, Double, R k)
-    backProp inp target c@(C b w bGrads wGrads) fs n a z =
+    backProp inp target c@(C _ w _ _) fs n a z =
       let (n', dWs', cost) = go a target fs n
           errs = dWs' * relu' z
           errWs = errs `outer` inp
@@ -238,8 +243,8 @@ epoch d@(D !trainData !testData) fs@(F !f _) !ps !netIO !count = do
   net <- netIO
   putStrLn $ "Running epoch " ++ show count ++ "..."
   let (net', cost) = train trainData fs ps net
-      trainAcc = getAccuracy trainData 0.5 f net'
-      testAcc = getAccuracy testData 0.5 f net'
+      trainAcc = getAccuracy trainData 0.8 f net'
+      testAcc = getAccuracy testData 0.8 f net'
   putStrLn $ "Cost: " ++ show cost
   putStrLn $ "Train Accuracy: " ++ show trainAcc
   putStrLn $ "Test Accuracy: " ++ show testAcc
@@ -288,7 +293,7 @@ examsNet = do
       testInps' = map (dvmap (/ 100)) testInps
       examsData = D (DB trainInps' trainOuts) (DB testInps' testOuts)
       net0 = randomNet :: IO (Network 2 '[ 8, 8] 1)
-      params = P 64 0.01
+      params = P 64 0.1
       modelFuncs = F sigmoid sigmoidCE
       epoch' = epoch examsData modelFuncs params
   putStrLn "Training network..."
@@ -303,30 +308,20 @@ mnistNet = do
   testLbls <- loadMnistLabels 10000 "./data/t10k-labels-idx1-ubyte.gz"
   let mnistData = D (DB trainImgs trainLbls) (DB testImgs testLbls)
       net0 = randomNet :: IO (Network 784 '[ 100] 10)
-      params = P 64 0.5
-      modelFuncs = F softmax softmaxCE
+      params = P 64 0.25
+      modelFuncs = F sigmoid sigmoidCE
       epoch' = epoch mnistData modelFuncs params
   putStrLn "Training network..."
   trained <- runEpochs 20 epoch' net0
-  saveNet "./data/mnistNet.txt" trained
+  saveNet "./data/mnistNetSigmoid.txt" trained
   return ()
 
-saveNet :: (KnownNat i, SingI hs, KnownNat o) => String -> Network i hs o -> IO ()
+saveNet ::
+     (KnownNat i, SingI hs, KnownNat o) => String -> Network i hs o -> IO ()
 saveNet = encodeFile
 
 loadNet :: (KnownNat i, SingI hs, KnownNat o) => String -> IO (Network i hs o)
 loadNet = decodeFile
-
-  {-
-randomNet :: (KnownNat i, SingI hs, KnownNat o) => IO (Network i hs o)
-randomNet = go sing
-  where
-    go :: (KnownNat h, KnownNat o) => Sing hs' -> IO (Network h hs' o)
-    go =
-      \case
-        SNil -> Output <$> kaimingInit
-        SNat `SCons` ss -> Layer <$> kaimingInit <*> go ss
--}
 
 -- INIT FUNCTIONS
 randomConnections :: (KnownNat i, KnownNat o) => IO (Connections i o)
