@@ -37,7 +37,7 @@ instance ToJSON Prediction
 
 getPrediction :: Network 784 '[ 100] 10 -> NumberString -> Prediction
 getPrediction net (NumberString imgStr) =
-  Prediction ((LA.toList . unwrap) $ runNet net (convertToVec imgStr) sigmoid)
+  Prediction ((LA.toList . unwrap) $ runNet net (ModelActivations Relu Sigmoid) (convertToVec imgStr))
 
 convertToVec :: [Double] -> R 784
 -- convertToVec imgStr = (1/255) * (vector . read) imgStr
