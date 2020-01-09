@@ -1,17 +1,12 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE OverloadedStrings #-}
-
-module Api where
+module Api.Api where
 
 import           Data.Aeson.Types
 import           Data.Text
 import           GHC.Generics                 (Generic)
+import           Learner.Network
 import           Network.HTTP.Types           as HTTP
 import           Network.Wai.Handler.Warp     (run)
 import           Network.Wai.Middleware.Cors
-import           Network2
 import qualified Numeric.LinearAlgebra        as LA
 import           Numeric.LinearAlgebra.Static
 import           Servant
@@ -37,12 +32,14 @@ instance ToJSON Prediction
 
 getPrediction :: Network 784 '[ 100] 10 -> NumberString -> Prediction
 getPrediction net (NumberString imgStr) =
-  Prediction ((LA.toList . unwrap) $ runNet net (ModelActivations Relu Sigmoid) (convertToVec imgStr))
+  Prediction
+    ((LA.toList . unwrap) $
+     runNet net (ModelActivations Sigmoid Relu) (convertToVec imgStr))
 
 convertToVec :: [Double] -> R 784
--- convertToVec imgStr = (1/255) * (vector . read) imgStr
-convertToVec = vector
+convertToVec img = (1 / 255) * vector img
 
+-- convertToVec = vector
 server :: Network 784 '[ 100] 10 -> Server MnistAPI
 server = predictionHandler
   where
@@ -70,12 +67,7 @@ corsPolicy =
     }
 
 allowedMethods :: [HTTP.Method]
-allowedMethods =
-  [ "GET"
-  , "POST"
-  , "HEAD"
-  , "OPTIONS" 
-  ]
+allowedMethods = ["GET", "POST", "HEAD", "OPTIONS"]
 
 main :: IO ()
 main = do

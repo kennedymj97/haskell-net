@@ -21,13 +21,11 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
-- MonadRandom
 - hmatrix == 0.20.0.0
 - singletons == 2.5.1
 - random
 - bytestring
 - zlib
-- hip == 1.5.4.0
 - binary
 - servant == 0.16.2
 - servant-server == 0.16.2
@@ -36,6 +34,17 @@ dependencies:
 - text
 - wai-cors == 0.2.7
 - http-types
+
+default-extensions:
+- BangPatterns
+- DataKinds
+- DeriveGeneric
+- GADTs
+- KindSignatures
+- LambdaCase
+- ScopedTypeVariables
+- TypeOperators
+- OverloadedStrings
 
 library:
   source-dirs: src
