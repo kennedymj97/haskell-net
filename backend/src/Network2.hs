@@ -38,9 +38,6 @@ data Connections i o =
 
 instance (KnownNat i, KnownNat o) => Binary (Connections i o)
 
-data OpaqueConnections where
-  OConnections :: Sing i -> Sing o -> Connections i o -> OpaqueConnections
-
 updateGrads ::
      (KnownNat i, KnownNat o)
   => R o
