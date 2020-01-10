@@ -10,32 +10,12 @@ import           Data.ReadMnist
 import           Data.Singletons
 import           Data.Singletons.Prelude      (Sing (SCons, SNil))
 import           Data.Singletons.TypeLits
-import           GHC.Generics                 (Generic)
+import           Learner.Activation
+import           Learner.Connections
+import           Learner.Init
 import qualified Numeric.LinearAlgebra        as LA
 import           Numeric.LinearAlgebra.Static
-import           System.Environment
-import           System.Random
 import           Text.Read
-
-data Connections i o =
-  C
-    { biases  :: !(R o)
-    , weights :: !(L o i)
-    , bGrads  :: !(R o)
-    , wGrads  :: !(L o i)
-    }
-  deriving (Show, Generic)
-
-instance (KnownNat i, KnownNat o) => Binary (Connections i o)
-
-updateGrads ::
-     (KnownNat i, KnownNat o)
-  => R o
-  -> L o i
-  -> Connections i o
-  -> Connections i o
-updateGrads bGrads' wGrads' (C b w bGrads wGrads) =
-  C b w (bGrads + bGrads') (wGrads + wGrads')
 
 data Network :: Nat -> [Nat] -> Nat -> * where
   Output :: !(Connections i o) -> Network i '[] o
@@ -73,28 +53,28 @@ loadNet :: (KnownNat i, SingI hs, KnownNat o) => String -> IO (Network i hs o)
 loadNet = decodeFile
 
 runNet ::
-     (KnownNat i, KnownNat o)
+     (KnownNat i, KnownNat o, Activation outA, Activation intA)
   => Network i hs o
-  -> ModelActivations
+  -> ModelActivations outA intA
   -> R i
   -> R o
-runNet (Output c) (ModelActivations outA _) !inp =
-  calcActivations outA (weightedInput c inp)
-runNet (c `Layer` n) ma@(ModelActivations _ intA) !inp =
-  let inp' = calcActivations intA (weightedInput c inp)
+runNet (Output c) (ModelActivations outAct _) !inp =
+  calcActivations outAct (weightedInput c inp)
+runNet (c `Layer` n) ma@(ModelActivations _ intAct) !inp =
+  let inp' = calcActivations intAct (weightedInput c inp)
    in runNet n ma inp'
 
 weightedInput :: (KnownNat i, KnownNat o) => Connections i o -> R i -> R o
 weightedInput (C b w _ _) v = w #> v + b
 
-randomNet :: (KnownNat i, SingI hs, KnownNat o) => Init -> IO (Network i hs o)
+randomNet :: (KnownNat i, SingI hs, KnownNat o, Init f) => f -> IO (Network i hs o)
 randomNet = go sing
   where
-    go :: (KnownNat h, KnownNat o) => Sing hs' -> Init -> IO (Network h hs' o)
+    go :: (KnownNat h, KnownNat o, Init f) => Sing hs' -> f -> IO (Network h hs' o)
     go sing init =
       case sing of
-        SNil            -> Output <$> genRandomConnections init
-        SNat `SCons` ss -> Layer <$> genRandomConnections init <*> go ss init
+        SNil            -> Output <$> genRandom init
+        SNat `SCons` ss -> Layer <$> genRandom init <*> go ss init
 
 data DataBunch i o =
   DataBunch
@@ -110,11 +90,8 @@ data ModelData i o =
     }
   deriving (Show)
 
-data ModelActivations =
-  ModelActivations
-    { output   :: Activation
-    , internal :: Activation
-    }
+data ModelActivations outA intA =
+  ModelActivations outA intA
 
 data Params =
   Params
@@ -123,19 +100,19 @@ data Params =
     }
 
 runEpochs ::
-    (KnownNat i, KnownNat o)
+    (KnownNat i, KnownNat o, Activation outA, Activation intA)
  => Int
  -> ModelData i o
- -> ModelActivations
+ -> ModelActivations outA intA
  -> Params
  -> IO (Network i hs o)
  -> IO (Network i hs o)
 runEpochs numEpochs md ma ps net = foldl' (epoch md ma ps) net [1 .. numEpochs]
 
 epoch ::
-     (KnownNat i, KnownNat o)
+     (KnownNat i, KnownNat o, Activation outA, Activation intA)
   => ModelData i o
-  -> ModelActivations
+  -> ModelActivations outA intA
   -> Params
   -> IO (Network i hs o)
   -> Int
@@ -153,9 +130,9 @@ epoch md@(ModelData !trainData !testData) ma !ps !netIO !count = do
   return net'
 
 train ::
-  (KnownNat i, KnownNat o)
+  (KnownNat i, KnownNat o, Activation outA, Activation intA)
   => DataBunch i o
-  -> ModelActivations
+  -> ModelActivations outA intA
   -> Params
   -> Network i hs o
   -> (Network i hs o, Double)
@@ -164,9 +141,9 @@ train db@(DataBunch !inps _) !ma !ps !net =
   in (net', -(costSum / (2 * fromIntegral (length inps))))
   where
     handleBatching ::
-          (KnownNat i, KnownNat o)
+          (KnownNat i, KnownNat o, Activation outA, Activation intA)
       => DataBunch i o
-      -> ModelActivations
+      -> ModelActivations outA intA
       -> Params
       -> Network i hs o
       -> Double
@@ -186,9 +163,9 @@ train db@(DataBunch !inps _) !ma !ps !net =
             optimisedNet
             (cost + cost')
     backPropagate ::
-          (KnownNat i, KnownNat o)
+          (KnownNat i, KnownNat o, Activation outA, Activation intA)
       => DataBunch i o
-      -> ModelActivations
+      -> ModelActivations outA intA
       -> Network i hs o
       -> (Network i hs o, Double)
     backPropagate db@(DataBunch inps targets) !ma !net =
@@ -206,10 +183,10 @@ train db@(DataBunch !inps _) !ma !ps !net =
     optimise ps (c `Layer` n) = sgd ps c `Layer` optimise ps n
 
 backPropOneInput ::
-     (KnownNat i, KnownNat o)
+     (KnownNat i, KnownNat o, Activation outA, Activation intA)
   => R i
   -> R o
-  -> ModelActivations
+  -> ModelActivations outA intA
   -> Network i hs o
   -> (Network i hs o, Double)
 backPropOneInput !inp !target !ma !net =
@@ -217,21 +194,21 @@ backPropOneInput !inp !target !ma !net =
    in (net', cost)
   where
     go ::
-         (KnownNat i, KnownNat o)
+         (KnownNat i, KnownNat o, Activation outA, Activation intA)
       => R i
       -> R o
-      -> ModelActivations
+      -> ModelActivations outA intA
       -> Network i hs o
       -> (Network i hs o, R i, Double)
-    go !inp !target (ModelActivations outA _) (Output !c) =
+    go !inp !target (ModelActivations outAct _) (Output !c) =
       let z = weightedInput c inp
-          a = calcActivations outA z
+          a = calcActivations outAct z
           (c', dWs) = outputErrs inp target a z c
-          cost = calcCost outA target a
+          cost = calcCost outAct target a
        in (Output c', dWs, cost)
-    go inp target ma@(ModelActivations _ intA) (c `Layer` n) =
+    go inp target ma@(ModelActivations _ intAct) (c `Layer` n) =
       let z = weightedInput c inp
-          a = calcActivations intA z
+          a = calcActivations intAct z
           (c', n', cost, dWs) = backProp inp target c ma n a z
        in (c' `Layer` n', dWs, cost)
     outputErrs ::
@@ -248,27 +225,27 @@ backPropOneInput !inp !target !ma !net =
           dWs = tr w #> errs
        in (updateGrads errs errWs c, dWs)
     backProp ::
-         (KnownNat i, KnownNat o, KnownNat k)
+         (KnownNat i, KnownNat o, KnownNat k, Activation outA, Activation intA)
       => R k
       -> R o
       -> Connections k i
-      -> ModelActivations
+      -> ModelActivations outA intA
       -> Network i hs o
       -> R i
       -> R i
       -> (Connections k i, Network i hs o, Double, R k)
-    backProp inp target c@(C _ w _ _) ma@(ModelActivations _ intA) net a z =
+    backProp inp target c@(C _ w _ _) ma@(ModelActivations _ intAct) net a z =
       let (net', dWs', cost) = go a target ma net
-          errs = dWs' * calcGradients intA z
+          errs = dWs' * calcGradients intAct z
           errWs = errs `outer` inp
           dWs = tr w #> errs
        in (updateGrads errs errWs c, net', cost, dWs)
 
 getAccuracy ::
-     (KnownNat i, KnownNat o)
+     (KnownNat i, KnownNat o, Activation outA, Activation intA)
   => DataBunch i o
   -> Double
-  -> ModelActivations
+  -> ModelActivations outA intA
   -> Network i hs o
   -> Double
 getAccuracy (DataBunch !inps !targets) !thresh !ma !net =
@@ -288,71 +265,6 @@ getAccuracy (DataBunch !inps !targets) !thresh !ma !net =
           (zip inps targets)
    in (numCorrect / fromIntegral (length inps)) * 100
 
--- INIT FUNCTIONS
-data Init
-  = RandomUniform
-  | Kaiming
-
-genRandomConnections :: (KnownNat i, KnownNat o) => Init -> IO (Connections i o)
-genRandomConnections =
-  \case
-    RandomUniform -> randomConnections
-    Kaiming -> kaimingInit
-
-randomConnections :: (KnownNat i, KnownNat o) => IO (Connections i o)
-randomConnections = do
-  seed1 <- randomIO :: IO Int
-  seed2 <- randomIO :: IO Int
-  let b = randomVector seed1 Uniform * 2 - 1
-      w = uniformSample seed2 (-1) 1
-  return (C b w 0 0)
-
-kaimingInit :: (KnownNat i, KnownNat o) => IO (Connections i o)
-kaimingInit = do
-  let b = 0 * randomVector 0 Uniform
-  w <- randn
-  let w' = sqrt (2 / fromIntegral (snd $ size w)) * w
-  return (C b w' 0 0)
-
--- ACTIVATION FUNCTIONS
-data Activation
-  = Sigmoid
-  | Relu
-  | Softmax
-
-calcActivations :: KnownNat a => Activation -> R a -> R a
-calcActivations activation x =
-  case activation of
-    Sigmoid -> 1 / (1 + exp (-x))
-    Relu -> dvmap (max 0) x
-    Softmax ->
-      let maxEle = LA.maxElement $ unwrap x
-          shiftx = dvmap (\ele -> ele - maxEle) x
-          expSum = sumElements' $ dvmap exp shiftx
-       in dvmap (\ele -> exp ele / expSum) shiftx
-
-calcGradients :: KnownNat a => Activation -> R a -> R a
-calcGradients activation x =
-  case activation of
-    Sigmoid ->
-      let x' = calcActivations Sigmoid x
-       in x' * (1 - x')
-    Relu ->
-      dvmap
-        (\ele ->
-           if ele < 0
-             then 0
-             else 1)
-        x
-    Softmax -> error "cannot use softmax for internal layers"
-
-calcCost :: KnownNat a => Activation -> R a -> R a -> Double
-calcCost activation target a =
-  case activation of
-    Sigmoid -> sumElements' $ (target * log a) + ((1 - target) * log (1 - a))
-    Softmax -> sumElements' $ target * log a
-    Relu    -> error "cannot use relu as an output activation"
-
 -- OPTIMISATION FUNCTIONS
 type OptFunc i o = Params -> Connections i o -> Connections i o
 
@@ -367,6 +279,4 @@ sgd (Params !bs !lr) (C !b !w !bGrads !wGrads) =
     0
     0
 
--- USEFUL VECTOR FUNCTIONS
-sumElements' :: KnownNat n => R n -> Double
-sumElements' = LA.sumElements . unwrap
+

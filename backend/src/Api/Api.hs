@@ -3,6 +3,7 @@ module Api.Api where
 import           Data.Aeson.Types
 import           Data.Text
 import           GHC.Generics                 (Generic)
+import           Learner.Activation
 import           Learner.Network
 import           Network.HTTP.Types           as HTTP
 import           Network.Wai.Handler.Warp     (run)

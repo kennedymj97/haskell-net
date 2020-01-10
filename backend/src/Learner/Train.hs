@@ -1,6 +1,8 @@
 module Learner.Train where
 
 import Learner.Network
+import Learner.Activation
+import Learner.Init
 import Data.ReadMnist
 import Data.ReadExam
 import Numeric.LinearAlgebra.Static

@@ -1,6 +1,6 @@
 module Data.ReadExam where
 
-import           Numeric.LinearAlgebra.Static
+import Numeric.LinearAlgebra.Static
 
 loadExamData :: String -> IO ([R 2], [R 1])
 loadExamData fpath = do
