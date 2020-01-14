@@ -1,4 +1,4 @@
-module Learner.Connections where
+module HaskellNet.Connections where
 
 import           Data.Binary
 import           Data.Singletons.TypeLits
@@ -24,3 +24,6 @@ updateGrads ::
   -> Connections i o
 updateGrads bGrads' wGrads' (C b w bGrads wGrads) =
   C b w (bGrads + bGrads') (wGrads + wGrads')
+
+weightedInput :: (KnownNat i, KnownNat o) => Connections i o -> R i -> R o
+weightedInput (C b w _ _) v = w #> v + b

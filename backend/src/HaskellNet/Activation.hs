@@ -1,4 +1,4 @@
-module Learner.Activation where
+module HaskellNet.Activation where
 
 import           Data.Singletons.TypeLits
 import qualified Numeric.LinearAlgebra                  as LA

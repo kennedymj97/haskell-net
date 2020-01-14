@@ -1,7 +1,7 @@
-module Learner.Init where
+module HaskellNet.Init where
 
 import           Data.Singletons.TypeLits
-import           Learner.Connections
+import           HaskellNet.Connections
 import           Numeric.LinearAlgebra.Static
 import           System.Random
 

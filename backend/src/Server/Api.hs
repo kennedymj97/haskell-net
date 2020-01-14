@@ -1,10 +1,10 @@
-module Api.Api where
+module Server.Api where
 
 import           Data.Aeson.Types
 import           Data.Text
 import           GHC.Generics                 (Generic)
-import           Learner.Activation
-import           Learner.Network
+import           HaskellNet.Activation
+import           HaskellNet.Network
 import           Network.HTTP.Types           as HTTP
 import           Network.Wai.Handler.Warp     (run)
 import           Network.Wai.Middleware.Cors
@@ -32,10 +32,10 @@ newtype Prediction =
 instance ToJSON Prediction
 
 getPrediction :: Network 784 '[ 100] 10 -> NumberString -> Prediction
-getPrediction net (NumberString imgStr) =
+getPrediction net (NumberString img) =
   Prediction
     ((LA.toList . unwrap) $
-     runNet net (ModelActivations Sigmoid Relu) (convertToVec imgStr))
+     runNet net (ModelActivations Sigmoid Relu) (convertToVec img))
 
 convertToVec :: [Double] -> R 784
 convertToVec img = (1 / 255) * vector img
