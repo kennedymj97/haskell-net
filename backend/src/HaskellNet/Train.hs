@@ -38,6 +38,6 @@ mnistNet = do
       params = Params 64 0.25
       modelFuncs = ModelActivations Sigmoid Relu
   putStrLn "Training network..."
-  trained <- runEpochs 40 mnistData modelFuncs params Sgd net0
-  saveNet "./data/mnistNetSigmoid.txt" trained
+  trained <- runEpochs 20 mnistData modelFuncs params Sgd net0
+  saveNet "./data/mnistNetSigmoid20.txt" trained
   return ()

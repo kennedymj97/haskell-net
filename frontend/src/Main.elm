@@ -2,9 +2,8 @@ port module Main exposing (..)
 
 import Array as A
 import Browser
-import Debug exposing (toString)
-import Html exposing (Html, button, canvas, div, h1, text)
-import Html.Attributes as HA exposing (class, id)
+import Html exposing (Html, a, button, canvas, div, h1, h2, h3, li, p, text, ul)
+import Html.Attributes as HA exposing (class, href, id)
 import Html.Events exposing (onClick)
 import Http
 import Json.Decode
@@ -183,14 +182,14 @@ view model =
     { title = "Deep Haskell"
     , body =
         [ div [ class "page" ]
-            [ div [ class "heading" ] [ h1 [] [ text "Deep Haskell" ] ]
+            [ div [ class "heading" ] [ h1 [] [ text "HaskellNet" ] ]
             , div [ class "content" ]
                 [ div [ class "left" ]
                     [ div [ id "canvas-container" ] [ canvas [ id "canvas" ] [] ]
                     , button [ id "reset", onClick Reset ] [ text "Reset" ]
                     , div [ class "vis-container" ] (viewProbs model)
                     ]
-                , div [ class "right" ] [ text projectInfo ]
+                , div [ class "right" ] projectInfo
                 ]
             ]
         ]
@@ -326,15 +325,52 @@ roundToNearestMult r x =
     x / r |> round |> toFloat |> (*) r |> floor
 
 
+projectInfo : List (Html Msg)
 projectInfo =
-    """Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras a nisi lectus. Maecenas finibus ligula a scelerisque dapibus. Morbi rutrum vel mi vitae suscipit. Fusce non erat in risus tincidunt mollis. Pellentesque non enim purus. Quisque euismod orci sed tristique congue. Suspendisse eu ligula risus. Donec sit amet magna ac libero posuere congue. Morbi nec tristique velit. Integer sit amet lectus vitae lacus imperdiet vehicula quis id massa. Fusce quis arcu quis enim iaculis pellentesque. Sed vel enim ac mauris vestibulum aliquam. Integer finibus venenatis odio vel molestie. Maecenas mattis, metus eget placerat ornare, mauris risus fringilla mi, sit amet pulvinar orci turpis sed nibh.
-
-Aenean malesuada nisi ut pharetra feugiat. Phasellus sollicitudin commodo dignissim. Donec eget faucibus eros, nec malesuada odio. Mauris commodo efficitur pellentesque. Ut porta ac quam ut gravida. Quisque dolor magna, volutpat non convallis cursus, ornare sed neque. Suspendisse velit justo, tempor a mollis at, malesuada nec lorem. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nunc posuere faucibus nunc, et rutrum ante consequat in. Aliquam ac sodales nunc. Vestibulum commodo turpis egestas neque tristique, vel ultricies turpis sollicitudin.
-
-Duis quis nisi id nisl fermentum bibendum. Curabitur laoreet, quam a condimentum pulvinar, neque justo sagittis ligula, nec dictum ex lorem a arcu. In hac habitasse platea dictumst. Aenean a venenatis ante. Nulla sit amet porttitor nulla. Nam et feugiat tortor, at dapibus quam. Praesent ornare blandit dui ac varius. Ut ultrices, libero at malesuada maximus, nulla ligula iaculis tortor, ac tempor quam ex at nibh. Donec interdum turpis sit amet urna mollis, faucibus feugiat urna feugiat. In nibh metus, aliquam vitae dolor sit amet, porta aliquam turpis. Maecenas lobortis consequat urna vitae tristique. Vestibulum non malesuada sapien. Suspendisse nibh nibh, mattis in mauris viverra, lacinia cursus purus.
-
-Aenean metus tellus, euismod in laoreet vel, pretium non nunc. Praesent eros magna, iaculis quis magna sed, aliquet ornare velit. Nulla pharetra euismod ante. Suspendisse dapibus efficitur felis, a volutpat nisl pretium at. Pellentesque viverra libero mollis est molestie eleifend vel id ex. Aliquam in tortor cursus, volutpat est ut, vulputate ante. Maecenas molestie vitae ipsum nec ultricies. Nulla tincidunt tincidunt velit. Sed sed tempus odio, quis consequat ligula. Aenean id lacus ac orci elementum mollis. Ut vitae libero sagittis, volutpat est eu, mattis arcu. Suspendisse potenti. Nam vitae metus sed nunc aliquet hendrerit.
-
-Maecenas eleifend semper auctor. Aliquam vitae nisi ex. Suspendisse sed velit nibh. Donec quis lobortis mi. Duis eget dictum magna, sit amet hendrerit nulla. Vestibulum ac velit egestas, placerat mi a, dictum quam. Sed lobortis, neque laoreet accumsan volutpat, lectus elit tristique diam, eu consequat risus ex sit amet nulla. Donec volutpat felis quis auctor condimentum. Sed porttitor molestie urna sed faucibus. Nulla rutrum efficitur ante, vel malesuada libero.
-
-Vivamus ut felis faucibus mauris vehicula commodo a vitae nisl. Sed ullamcorper quam mi, in pretium dui volutpat pretium. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Vestibulum pellentesque diam et purus posuere, in elementum turpis bibendum. Mauris dictum aliquet enim, ut ultricies mi finibus nec. Nulla aliquam leo metus, quis iaculis mauris venenatis ac. Phasellus varius varius sem eu mollis. Pellentesque ultrices dolor diam, at vulputate risus congue vel. Aenean ac libero eu ipsum sollicitudin tincidunt sit amet vel risus. Curabitur id metus nec sapien vestibulum vestibulum. Sed mattis efficitur ultrices. Maecenas congue arcu at libero faucibus, vitae ultrices libero feugiat. Cras mi nulla, suscipit sed felis a, aliquam maximus mauris. Vivamus ac gravida odio. Nam fringilla fermentum elit luctus suscipit. Proin blandit lorem ac turpis dignissim auctor."""
+    [ h2 [ id "intro" ] [ text "Introduction" ]
+    , p []
+        [ text "This project largely inspired by a blog series on "
+        , a [ href "https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html" ] [ text "type-safe neural networks by Justin Le." ]
+        , text
+            """
+               It provides a library to produce artificial neural networks in Haskell. This site interacts with the library by sending the data of a number you draw to an API that will provide a prediction from a network trained using the library on the 
+               """
+        , a [ href "http://yann.lecun.com/exdb/mnist/" ] [ text "MNIST dataset. " ]
+        , text "The network is by no means optimal but it achieves the goal of 95% prediction accuracy set at the start of the project."
+        ]
+    , p []
+        [ text
+            """
+                  Machine learning code is notoriously hard to test and debug. There is no simple way to check for correctness and there are many places where bugs can occur from incorrect matrix multiplications. This project experiments with the use of dependant types to ensure that the matrix multiplications are valid. It does not solve the issue but has a significant impact in helping catch bugs. There were times in writing the library that I would mistakenly multiply the wrong matrices, instead of having to go through the pain of trying to work out exactly why the results were weird the compiler threw an error, letting me known exactly where and why the code would not work.
+               """
+        ]
+    , h2 [] [ text "Key Takeaways" ]
+    , ul []
+        [ li [] [ text "Learning more about functional programming in general" ]
+        , li [] [ text "The power of types and type-level programming" ]
+        , li [] [ text "Deeper understanding of the fundamentals of neural networks" ]
+        , li [] [ text "Learning about and experimenting with ", a [ href "https://elm-lang.org/" ] [ text "Elm" ] ]
+        ]
+    , h2 [] [ text "Improvements" ]
+    , h3 [] [ text "Data Augmentation" ]
+    , p []
+        [ text
+            """
+                If you have had a chance to mess around with drawing some numbers you may have noticed some flaws. The most glaring to me is that the position and size you draw the number matters. For example, if drawing a 1 towards the right of the box it can be very confident you are drawing a 4! This is because the MNIST dataset contains numbers that are all of a similar size and are centered in the box. Now, this wouldn't be a problem if you could control the input, but in this case you can draw the number at whatever size and position you want.
+            """
+        , p []
+            [ text
+                """
+                To reduce this problem data augmentation could be used. This means the original dataset would be taken and a set of transforms applied to the images. Namely moving the numbers around, resizing them and rotating them. Retraining a network with this transformed dataset should produce much better results for this use case.
+              """
+            ]
+        ]
+    , h3 [] [ text "Better Networks" ]
+    , p [] [ text """
+    The library only has standard artificial neural networks. There is no doubt that implementing more modern architectures would improve the performance. However, the aim was not to produce a state of the art deep learning library and the artificial neural networks are good enough.
+    """ ]
+    , h2 [] [ text "Sigmoid vs Softmax" ]
+    , p []
+        [ text """You may also have noted that sometimes the sum of all the predictions is greater than 100%. This is due to a sigmoid activation function being used in the output layer of the network. A softmax function could have been used which guarantees that the prediction percentages add up to 100%. However, the problem is just that, if you draw rubbish in the box it will still give you a set of predictions that adds up to 100%, not exactly what is wanted in this case. It may be interesting to do some kind of hybrid where if the total is greater than 100% softmax can be used to scale the resluts better, if not sigmoid is fine. Softmax if always a goto if you know the problem space is fully covered. This could be done by adding a 'not a number class' to the training data, however it can be a gotcha and is something to watch out for. We don't always want to force the networks to make predictions."""
+        ]
+    ]
