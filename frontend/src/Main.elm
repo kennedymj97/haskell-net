@@ -188,7 +188,7 @@ view model =
                 [ div [ class "left" ]
                     [ div [ id "canvas-container" ] [ canvas [ id "canvas" ] [] ]
                     , button [ id "reset", onClick Reset ] [ text "Reset" ]
-                    , div [] (viewProbs model)
+                    , div [ class "vis-container" ] (viewProbs model)
                     ]
                 , div [ class "right" ] [ text projectInfo ]
                 ]
