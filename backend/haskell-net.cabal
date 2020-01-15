@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b289517506b520f22f53508a3c9f7f14fdba91c722a40996167b3b20dcbb4dc2
+-- hash: a834396bb9fcb75addb0ea7a5e69681b688ced6c84e3ec0cf1dec3f9afda2326
 
 name:           haskell-net
 version:        0.1.0.0
@@ -17,9 +17,6 @@ copyright:      2019 Author name here
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
-extra-source-files:
-    README.md
-    ChangeLog.md
 
 source-repository head
   type: git
