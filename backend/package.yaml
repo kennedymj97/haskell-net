@@ -1,4 +1,4 @@
-name:                deep-haskell
+name:                haskell-net
 version:             0.1.0.0
 github:              "githubuser/deep-haskell"
 license:             BSD3
@@ -50,7 +50,7 @@ library:
   source-dirs: src
 
 executables:
-  deep-haskell-exe:
+  haskell-net-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -58,4 +58,4 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - deep-haskell
+    - haskell-net

@@ -40,8 +40,8 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 extra-deps: [
-  "warp-3.3.5@sha256:aafb4283a8a17b8ae7043109e9a6b055aec9eb9d69cc9ea9bbf0ac6eb27067de,10720"
-, "http2-2.0.3@sha256:c08885f0fd26ae035b169029b782cc693cc30e4d7a3b6f21a61de31085e8cfae,17644"
+  "warp-3.3.5"
+, "http2-2.0.3"
 ]
 
 # Override default flag values for local packages and extra-deps
