@@ -19,9 +19,33 @@ function initDraw(canvas, container) {
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = 'white';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  canvas.addEventListener('mousedown', setPos, false);
+  let mouseIsDown = false;
+  canvas.addEventListener(
+    'mousedown',
+    e => {
+      setPos(e);
+      mouseIsDown = true;
+    },
+    false,
+  );
   canvas.addEventListener('mousemove', draw, false);
-  canvas.addEventListener('mouseup', sendData, false);
+  canvas.addEventListener(
+    'mouseup',
+    () => {
+      sendData();
+      mouseIsDown = false;
+      console.log("here");
+    },
+    false,
+  );
+  canvas.addEventListener(
+    'mouseout',
+    () => {
+      if (mouseIsDown) sendData();
+      mouseIsDown = false;
+    },
+    false,
+  );
 
   function sendData() {
     app.ports.numChanged.send({
@@ -57,7 +81,7 @@ function initDraw(canvas, container) {
     if (e.buttons !== 1) return;
 
     ctx.beginPath();
-    ctx.lineWidth = container.offsetWidth / 12;
+    ctx.lineWidth = container.offsetWidth / 9;
     ctx.lineCap = 'round';
 
     ctx.moveTo(pos.x, pos.y);
