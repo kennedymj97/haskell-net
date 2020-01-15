@@ -224,7 +224,7 @@ viewProbs model =
 postImg : A.Array Float -> Cmd Msg
 postImg img =
     Http.post
-        { url = "http://localhost:8081"
+        { url = "https://api.mattkennedy.io/haskell-net/"
         , body = Http.jsonBody (encodeImg img)
         , expect = Http.expectJson GotProbs decodeProbs
         }

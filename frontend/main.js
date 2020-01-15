@@ -6440,7 +6440,7 @@ var $author$project$Main$postImg = function (img) {
 			Q: $elm$http$Http$jsonBody(
 				$author$project$Main$encodeImg(img)),
 			a4: A2($elm$http$Http$expectJson, $author$project$Main$GotProbs, $author$project$Main$decodeProbs),
-			bC: 'http://localhost:8081'
+			bC: 'https://api.mattkennedy.io/haskell-net/'
 		});
 };
 var $author$project$Main$update = F2(
