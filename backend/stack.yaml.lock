@@ -18,6 +18,13 @@ packages:
       sha256: 954622417a3d9a33975c5ab7e68d3218b0bc383c9f7ee192ee3ac849a63d2613
   original:
     hackage: http2-2.0.3
+- completed:
+    hackage: wai-extra-3.0.32@sha256:7a9e65c4555e1b937dc788b8ba249dbacd4f36840c60581bc27115a5c4a48079,7044
+    pantry-tree:
+      size: 3631
+      sha256: 443d6dcb9cc19df1693a7b56a8c18b664521e34c4701fea7aaf92e62fc943df4
+  original:
+    hackage: wai-extra-3.0.32
 snapshots:
 - completed:
     size: 524799

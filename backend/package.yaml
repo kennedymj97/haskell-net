@@ -31,6 +31,7 @@ dependencies:
 - aeson == 1.4.6.0
 - text
 - wai-cors == 0.2.7
+- wai-extra == 3.0.32
 - http-types
 
 default-extensions:

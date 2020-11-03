@@ -8,6 +8,7 @@ import           HaskellNet.Network
 import           Network.HTTP.Types           as HTTP
 import           Network.Wai.Handler.Warp     (run)
 import           Network.Wai.Middleware.Cors
+import           Network.Wai.Middleware.RequestLogger
 import qualified Numeric.LinearAlgebra        as LA
 import           Numeric.LinearAlgebra.Static
 import           Servant
@@ -52,8 +53,9 @@ mnistAPI :: Proxy MnistAPI
 mnistAPI = Proxy
 
 application :: Network 784 '[ 100] 10 -> Application
-application net = cors (const $ Just corsPolicy) $ serve mnistAPI (server net)
+application net = cors (const $ Just corsPolicy) $ logStdout $ serve mnistAPI (server net)
 
+    --{ corsOrigins = Nothing
 corsPolicy :: CorsResourcePolicy
 corsPolicy =
   CorsResourcePolicy
@@ -73,4 +75,5 @@ allowedMethods = ["GET", "POST", "HEAD", "OPTIONS"]
 main :: IO ()
 main = do
   net <- loadNet "./data/mnistNetSigmoid.txt" :: IO (Network 784 '[ 100] 10)
+  putStrLn "Running API on port 8081"
   run 8081 (application net)
