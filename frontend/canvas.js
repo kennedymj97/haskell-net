@@ -34,7 +34,6 @@ function initDraw(canvas, container) {
     () => {
       sendData();
       mouseIsDown = false;
-      console.log("here");
     },
     false,
   );
