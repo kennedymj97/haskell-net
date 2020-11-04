@@ -6478,6 +6478,7 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$header = _VirtualDom_node('header');
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 0, a: a};
@@ -6621,7 +6622,7 @@ var $author$project$Main$projectInfo = _List_fromArray(
 		_List_Nil,
 		_List_fromArray(
 			[
-				$elm$html$Html$text('Data Augmentation')
+				$elm$html$Html$text('1. Data Augmentation')
 			])),
 		A2(
 		$elm$html$Html$p,
@@ -6642,7 +6643,7 @@ var $author$project$Main$projectInfo = _List_fromArray(
 		_List_Nil,
 		_List_fromArray(
 			[
-				$elm$html$Html$text('Better Networks')
+				$elm$html$Html$text('2. Better Networks')
 			])),
 		A2(
 		$elm$html$Html$p,
@@ -6666,6 +6667,7 @@ var $author$project$Main$projectInfo = _List_fromArray(
 				$elm$html$Html$text('You may also have noted that sometimes the sum of all the predictions is greater than 100%. This is due to a sigmoid activation function being used in the output layer of the network. A softmax function could have been used which guarantees that the prediction percentages add up to 100%. However, the problem is just that, if you draw rubbish in the box it will still give you a set of predictions that adds up to 100%, not exactly what is wanted in this case. It may be interesting to do some kind of hybrid where if the total is greater than 100% softmax can be used to scale the resluts better, if not sigmoid is fine. Softmax if always a goto if you know the problem space is fully covered. This could be done by adding a \'not a number class\' to the training data, however it can be a gotcha and is something to watch out for. We don\'t always want to force the networks to make predictions.')
 			]))
 	]);
+var $elm$html$Html$span = _VirtualDom_node('span');
 var $elm$core$List$maximum = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -6817,17 +6819,84 @@ var $author$project$Main$viewProbs = function (model) {
 		case 0:
 			return _List_fromArray(
 				[
-					$elm$html$Html$text('Draw a number in the box above!')
+					A2(
+					$elm$html$Html$div,
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('prediction')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('prediction-item-container'),
+									$elm$html$Html$Attributes$id('predicted-number')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('prediction-label')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('prediction')
+										])),
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('prediction-item')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('_')
+										]))
+								])),
+							A2(
+							$elm$html$Html$div,
+							_List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('prediction-item-container')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('prediction-label')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('certainty')
+										])),
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('prediction-item')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('_')
+										]))
+								]))
+						]))
 				]);
 		case 1:
 			return _List_fromArray(
 				[
-					$elm$html$Html$text('Couldn\'t get a result back from the model :\'(')
+					$elm$html$Html$text('Error: couldn\'t get a result back from the model :\'(')
 				]);
 		case 2:
 			return _List_fromArray(
 				[
-					$elm$html$Html$text('Getting predictions')
+					$elm$html$Html$text('Getting predictions...')
 				]);
 		default:
 			var probs = model.a;
@@ -6845,23 +6914,62 @@ var $author$project$Main$viewProbs = function (model) {
 							$elm$html$Html$div,
 							_List_fromArray(
 								[
-									$elm$html$Html$Attributes$class('prediction-item')
+									$elm$html$Html$Attributes$class('prediction-item-container'),
+									$elm$html$Html$Attributes$id('predicted-number')
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(
-									'Prediction: ' + $author$project$Main$getPrediction(probs))
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('prediction-label')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('prediction')
+										])),
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('prediction-item')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(
+											$author$project$Main$getPrediction(probs))
+										]))
 								])),
 							A2(
 							$elm$html$Html$div,
 							_List_fromArray(
 								[
-									$elm$html$Html$Attributes$class('prediction-item')
+									$elm$html$Html$Attributes$class('prediction-item-container')
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(
-									'    Certainty: ' + $author$project$Main$getCertainty(probs))
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('prediction-label')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('certainty')
+										])),
+									A2(
+									$elm$html$Html$span,
+									_List_fromArray(
+										[
+											$elm$html$Html$Attributes$class('prediction-item')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(
+											$author$project$Main$getCertainty(probs))
+										]))
 								]))
 						])),
 					A2(
@@ -6879,10 +6987,29 @@ var $author$project$Main$view = function (model) {
 		Q: _List_fromArray(
 			[
 				A2(
+				$elm$html$Html$header,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('heading')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$h1,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('title')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Haskell Net')
+							]))
+					])),
+				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('page')
+						$elm$html$Html$Attributes$class('demo-container')
 					]),
 				_List_fromArray(
 					[
@@ -6890,23 +7017,7 @@ var $author$project$Main$view = function (model) {
 						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$class('heading')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$h1,
-								_List_Nil,
-								_List_fromArray(
-									[
-										$elm$html$Html$text('HaskellNet')
-									]))
-							])),
-						A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('content')
+								$elm$html$Html$Attributes$class('demo')
 							]),
 						_List_fromArray(
 							[
@@ -6914,10 +7025,21 @@ var $author$project$Main$view = function (model) {
 								$elm$html$Html$div,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$class('left')
+										$elm$html$Html$Attributes$class('demo-area'),
+										$elm$html$Html$Attributes$id('number-input')
 									]),
 								_List_fromArray(
 									[
+										A2(
+										$elm$html$Html$span,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$id('canvas-label')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Try drawing a number from 0-9 in the box below.')
+											])),
 										A2(
 										$elm$html$Html$div,
 										_List_fromArray(
@@ -6944,26 +7066,27 @@ var $author$project$Main$view = function (model) {
 										_List_fromArray(
 											[
 												$elm$html$Html$text('Reset')
-											])),
-										A2(
-										$elm$html$Html$div,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$class('vis-container')
-											]),
-										$author$project$Main$viewProbs(model))
+											]))
 									])),
 								A2(
 								$elm$html$Html$div,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$class('right')
+										$elm$html$Html$Attributes$class('demo-area'),
+										$elm$html$Html$Attributes$id('results')
 									]),
-								$author$project$Main$projectInfo)
+								$author$project$Main$viewProbs(model))
 							]))
-					]))
+					])),
+				A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('project-info')
+					]),
+				$author$project$Main$projectInfo)
 			]),
-		aP: 'Deep Haskell'
+		aP: 'Haskell Net'
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$document(

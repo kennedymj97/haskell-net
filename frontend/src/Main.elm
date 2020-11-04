@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import Array as A
 import Browser
-import Html exposing (Html, a, button, canvas, div, h1, h2, h3, li, p, text, ul)
+import Html exposing (Html, a, button, canvas, div, h1, h2, h3, li, p, text, ul, header, span)
 import Html.Attributes as HA exposing (class, href, id)
 import Html.Events exposing (onClick)
 import Http
@@ -179,19 +179,21 @@ type alias Document msg =
 
 view : Model -> Document Msg
 view model =
-    { title = "Deep Haskell"
+    { title = "Haskell Net"
     , body =
-        [ div [ class "page" ]
-            [ div [ class "heading" ] [ h1 [] [ text "HaskellNet" ] ]
-            , div [ class "content" ]
-                [ div [ class "left" ]
-                    [ div [ id "canvas-container" ] [ canvas [ id "canvas" ] [] ]
-                    , button [ id "reset", onClick Reset ] [ text "Reset" ]
-                    , div [ class "vis-container" ] (viewProbs model)
-                    ]
-                , div [ class "right" ] projectInfo
-                ]
-            ]
+        [ header [class "heading"] [h1 [class "title"] [text "Haskell Net"]]
+        , div [ class "demo-container" ]
+              [ div [class "demo"]
+                  [ div [class "demo-area", id "number-input"] 
+                      [ span [ id "canvas-label" ] 
+                             [ text "Try drawing a number from 0-9 in the box below." ]
+                      , div [ id "canvas-container" ] [ canvas [ id "canvas" ] [] ]
+                      , button [ id "reset", onClick Reset ] [ text "Reset" ]
+                      ]
+                  , div [ class "demo-area", id "results" ] (viewProbs model)
+                  ]
+              ]
+        , div [ class "project-info" ] projectInfo
         ]
     }
 
@@ -200,18 +202,42 @@ viewProbs : Model -> List (Html Msg)
 viewProbs model =
     case model of
         Initial ->
-            [ text "Draw a number in the box above!" ]
+            [ div [ class "prediction" ]
+                [ div [ class "prediction-item-container", id "predicted-number" ]
+                      [ span [ class "prediction-label" ]
+                             [ text "prediction" ]
+                      , span [ class "prediction-item" ]
+                             [ text "_" ]
+                      ]
+                , div [ class "prediction-item-container" ]
+                      [ span [ class "prediction-label" ]
+                             [ text "certainty" ]
+                      , span [ class "prediction-item" ]
+                             [ text "_" ]
+                      ]
+                ]
+            ]
 
         Failure ->
-            [ text "Couldn't get a result back from the model :'(" ]
+            [ text "Error: couldn't get a result back from the model :'(" ]
 
         Loading ->
-            [ text "Getting predictions" ]
+            [ text "Getting predictions..." ]
 
         Probs probs ->
             [ div [ class "prediction" ]
-                [ div [ class "prediction-item" ] [ text <| "Prediction: " ++ getPrediction probs ]
-                , div [ class "prediction-item" ] [ text <| "    Certainty: " ++ getCertainty probs ]
+                [ div [ class "prediction-item-container", id "predicted-number" ]
+                      [ span [ class "prediction-label" ]
+                             [ text "prediction" ]
+                      , span [ class "prediction-item" ]
+                             [ text (getPrediction probs) ]
+                      ]
+                , div [ class "prediction-item-container" ]
+                      [ span [ class "prediction-label" ]
+                             [ text "certainty" ]
+                      , span [ class "prediction-item" ]
+                             [ text (getCertainty probs) ]
+                      ]
                 ]
             , div [ class "visualise-probs" ] (visualiseProbs probs)
             ]
@@ -352,7 +378,7 @@ projectInfo =
         , li [] [ text "Learning about and experimenting with ", a [ href "https://elm-lang.org/" ] [ text "Elm" ] ]
         ]
     , h2 [] [ text "Improvements" ]
-    , h3 [] [ text "Data Augmentation" ]
+    , h3 [] [ text "1. Data Augmentation" ]
     , p []
         [ text
             """
@@ -365,7 +391,7 @@ projectInfo =
               """
             ]
         ]
-    , h3 [] [ text "Better Networks" ]
+    , h3 [] [ text "2. Better Networks" ]
     , p [] [ text """
     The library only has standard artificial neural networks. There is no doubt that implementing more modern architectures would improve the performance. However, the aim was not to produce a state of the art deep learning library and the artificial neural networks are good enough.
     """ ]
