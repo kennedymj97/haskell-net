@@ -188,7 +188,7 @@ view model =
                       [ span [ id "canvas-label" ] 
                              [ text "Try drawing a number from 0-9 in the box below." ]
                       , div [ id "canvas-container" ] [ canvas [ id "canvas" ] [] ]
-                      , button [ id "reset", onClick Reset ] [ text "Reset" ]
+                      , button [ id "reset", onClick Reset ] [ text "CLEAR" ]
                       ]
                   , div [ class "demo-area", id "results" ] (viewProbs model)
                   ]

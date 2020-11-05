@@ -7065,7 +7065,7 @@ var $author$project$Main$view = function (model) {
 											]),
 										_List_fromArray(
 											[
-												$elm$html$Html$text('Reset')
+												$elm$html$Html$text('CLEAR')
 											]))
 									])),
 								A2(
