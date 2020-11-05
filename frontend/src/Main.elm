@@ -179,9 +179,9 @@ type alias Document msg =
 
 view : Model -> Document Msg
 view model =
-    { title = "Haskell Net"
+    { title = "HaskellNet Demo"
     , body =
-        [ header [class "heading"] [h1 [class "title"] [text "Haskell Net"]]
+        [ header [class "heading"] [h1 [class "title"] [text "HaskellNet"]]
         , div [ class "demo-container" ]
               [ div [class "demo"]
                   [ div [class "demo-area", id "number-input"] 
@@ -353,50 +353,50 @@ roundToNearestMult r x =
 
 projectInfo : List (Html Msg)
 projectInfo =
-    [ h2 [ id "intro" ] [ text "Introduction" ]
+    [ h2 [ id "about" ] [ text "About" ]
     , p []
-        [ text "This project largely inspired by a blog series on "
-        , a [ href "https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html" ] [ text "type-safe neural networks by Justin Le." ]
+        [ text "This project was inspired by a blog series on "
+        , a [ href "https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html" ] [ text "type-safe neural networks by Justin Le" ]
         , text
             """
-               It provides a library to produce artificial neural networks in Haskell. This site interacts with the library by sending the data of a number you draw to an API that will provide a prediction from a network trained using the library on the 
+               . HaskellNet is a library that produces type-safe artificial neural networks in Haskell. When you draw a number in the box the data is sent an API deployed on GCP that will provide a prediction from a network trained using the library on the 
                """
-        , a [ href "http://yann.lecun.com/exdb/mnist/" ] [ text "MNIST dataset. " ]
-        , text "The network is by no means optimal but it achieves the goal of 95% prediction accuracy set at the start of the project."
+        , a [ href "http://yann.lecun.com/exdb/mnist/" ] [ text "MNIST dataset" ]
+        , text ". The network is by no means optimal but it achieves the goal of 95% prediction accuracy set at the start of the project."
         ]
     , p []
         [ text
             """
-                  Machine learning code is notoriously hard to test and debug. There is no simple way to check for correctness and there are many places where bugs can occur from incorrect matrix multiplications. This project experiments with the use of dependant types to ensure that the matrix multiplications are valid. It does not solve the issue but has a significant impact in helping catch bugs. There were times in writing the library that I would mistakenly multiply the wrong matrices, instead of having to go through the pain of trying to work out exactly why the results were weird the compiler threw an error, letting me known exactly where and why the code would not work.
+                  Machine learning code is notoriously hard to test and debug. There is no simple way to check for correctness and it is common for bugs to occur from incorrect matrix multiplications. This project experiments with the use of dependant types to ensure that the matrix multiplications are valid. It does not solve the issue but has a significant impact in helping catch bugs.
                """
         ]
-    , h2 [] [ text "Key Takeaways" ]
-    , ul []
-        [ li [] [ text "Learning more about functional programming in general" ]
-        , li [] [ text "The power of types and type-level programming" ]
-        , li [] [ text "Deeper understanding of the fundamentals of neural networks" ]
-        , li [] [ text "Learning about and experimenting with ", a [ href "https://elm-lang.org/" ] [ text "Elm" ] ]
+    , p []
+        [ text "This page is a demo and does not discuss the project in detail. For more information "
+        , a [ href "https://www.github.com/kennedymj97/haskell-net" ] [ text "view the code" ]
+        , text " or "
+        , a [ href "https://raw.githubusercontent.com/kennedymj97/haskell-net/master/haskell-net.pdf" ] [ text "read the report" ]
+        , text ". The front end for this demo was built with Elm and is deployed using GitHub Pages. The back end uses servant and aeson along with a pretrained network produced using HaskellNet that returns the predictions and is deployed using GCP Compute Engine instance and NGINX."
         ]
     , h2 [] [ text "Improvements" ]
     , h3 [] [ text "1. Data Augmentation" ]
     , p []
         [ text
             """
-                If you have had a chance to mess around with drawing some numbers you may have noticed some flaws. The most glaring to me is that the position and size you draw the number matters. For example, if drawing a 1 towards the right of the box it can be very confident you are drawing a 4! This is because the MNIST dataset contains numbers that are all of a similar size and are centered in the box. Now, this wouldn't be a problem if you could control the input, but in this case you can draw the number at whatever size and position you want.
+                If you have drawn some numbers you may have noticed some flaws. The most glaring to me is that the position and size you draw the number matters. For example, if drawing a 1 towards the right of the box it can be very confident you are drawing a 4! This is because the MNIST dataset contains numbers that are all of a similar size and are centered in the box. Now, this wouldn't be a problem if you could control the input, but in this case you can draw the number at whatever size and position you want.
             """
         , p []
             [ text
                 """
-                To reduce this problem data augmentation could be used. This means the original dataset would be taken and a set of transforms applied to the images. Namely moving the numbers around, resizing them and rotating them. Retraining a network with this transformed dataset should produce much better results for this use case.
+                To reduce this problem data augmentation could be used. This means the original dataset would be taken and a set of transforms applied to the images. Namely moving the numbers around, resizing them and rotating them. Retraining a network with this transformed dataset should produce much better results for this demo.
               """
             ]
         ]
     , h3 [] [ text "2. Better Networks" ]
     , p [] [ text """
-    The library only has standard artificial neural networks. There is no doubt that implementing more modern architectures would improve the performance. However, the aim was not to produce a state of the art deep learning library and the artificial neural networks are good enough.
+    The library only has standard artificial neural networks. There is no doubt that implementing architectures such as convolutional neural networks would improve the performance. However, the aim was not to produce a state of the art deep learning library and the artificial neural networks are good enough to achieve the aim of 95% prediction accuracy on the MNIST dataset.
     """ ]
     , h2 [] [ text "Sigmoid vs Softmax" ]
     , p []
-        [ text """You may also have noted that sometimes the sum of all the predictions is greater than 100%. This is due to a sigmoid activation function being used in the output layer of the network. A softmax function could have been used which guarantees that the prediction percentages add up to 100%. However, the problem is just that, if you draw rubbish in the box it will still give you a set of predictions that adds up to 100%, not exactly what is wanted in this case. It may be interesting to do some kind of hybrid where if the total is greater than 100% softmax can be used to scale the resluts better, if not sigmoid is fine. Softmax if always a goto if you know the problem space is fully covered. This could be done by adding a 'not a number class' to the training data, however it can be a gotcha and is something to watch out for. We don't always want to force the networks to make predictions."""
+        [ text """You may have noted that the sum of all the predictions can be greater than 100%. This is due to a sigmoid activation function being used in the output layer of the network. A softmax function could have been used which guarantees that the prediction percentages add up to 100%. However, the problem is just that, if you draw rubbish in the box it will still give you a set of predictions that adds up to 100%, not exactly what is wanted in this case. Softmax is always a goto if you know the problem space is fully covered. This could be done by adding a 'not a number class' to the training data. It is common for softmax to be used when it shouldn't and is something to watch out for. We don't always want to force the networks to make predictions."""
         ]
     ]

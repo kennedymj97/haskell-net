@@ -1,6 +1,8 @@
 # Haskell Net
 
-Front-end available [here](https://kennedymj97.github.io/haskell-net/frontend/index.html).
+See a demo of the library [here](https://kennedymj97.github.io/haskell-net/frontend/index.html).
+
+For more information about the project please read [the report](https://raw.githubusercontent.com/kennedymj97/haskell-net/master/haskell-net.pdf).
 
 This README will briefly explain the repository structure and detail which code was written from scratch, adapted and what is third party code. Any files not mentioned here should not be important.
 
