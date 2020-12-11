@@ -6978,7 +6978,7 @@ var $author$project$Main$view = function (model) {
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text('HaskellNet')
+								$elm$html$Html$text('Haskell Net')
 							]))
 					])),
 				A2(
@@ -7062,7 +7062,7 @@ var $author$project$Main$view = function (model) {
 					]),
 				$author$project$Main$projectInfo)
 			]),
-		aP: 'HaskellNet Demo'
+		aP: 'Haskell Net Demo'
 	};
 };
 var $author$project$Main$main = $elm$browser$Browser$document(

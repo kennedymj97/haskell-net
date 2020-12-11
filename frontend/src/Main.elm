@@ -179,9 +179,9 @@ type alias Document msg =
 
 view : Model -> Document Msg
 view model =
-    { title = "HaskellNet Demo"
+    { title = "Haskell Net Demo"
     , body =
-        [ header [class "heading"] [h1 [class "title"] [text "HaskellNet"]]
+        [ header [class "heading"] [h1 [class "title"] [text "Haskell Net"]]
         , div [ class "demo-container" ]
               [ div [class "demo"]
                   [ div [class "demo-area", id "number-input"] 
