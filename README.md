@@ -1,5 +1,9 @@
 # Haskell Net
 
+This project was inspired by a [blog series on type-safe neural networks by Justin Le](https://blog.jle.im/entry/practical-dependent-types-in-haskell-1.html). HaskellNet is a library that produces type-safe artificial neural networks in Haskell. 
+
+Machine learning code is notoriously hard to test and debug. There is no simple way to check for correctness and it is common for bugs to occur from incorrect matrix multiplications. This project experiments with the use of dependant types to ensure that the matrix multiplications are valid, helping catch a significant cause of bugs when building neural networks. 
+
 See a demo of the library [here](https://kennedymj97.github.io/haskell-net/frontend/index.html).
 
 For more information about the project please read [the report](https://raw.githubusercontent.com/kennedymj97/haskell-net/master/haskell-net.pdf).
