@@ -6555,7 +6555,7 @@ var $author$project$Main$projectInfo = _List_fromArray(
 		_List_Nil,
 		_List_fromArray(
 			[
-				$elm$html$Html$text('\n                  Machine learning code is notoriously hard to test and debug. There is no simple way to check for correctness and it is common for bugs to occur from incorrect matrix multiplications. This project experiments with the use of dependant types to ensure that the matrix multiplications are valid. It does not solve the issue but has a significant impact in helping catch bugs.\n               ')
+				$elm$html$Html$text('\n                  Machine learning code is notoriously hard to test and debug. There is no simple way to check for correctness and it is common for bugs to occur from incorrect matrix multiplications. This project experiments with the use of dependant types to ensure that the matrix multiplications are valid, helping catch a significant cause of bugs when building neural networks.\n               ')
 			])),
 		A2(
 		$elm$html$Html$p,
